@@ -1,0 +1,6 @@
+{
+  "name": "Portal IT / Sistemas",
+  "description": "Sistema de gestión integral para Departamento de Sistemas / IT: tareas, incidencias, proyectos, calendario, documentación, activos y licencias.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

@@ -1,0 +1,264 @@
+{
+  "entities": {
+    "User": {
+      "title": "User",
+      "description": "User profile with role and organization info",
+      "type": "object",
+      "properties": {
+        "uid": { "type": "string", "description": "Firebase Auth UID" },
+        "email": { "type": "string", "description": "Corporate email address" },
+        "displayName": { "type": "string", "description": "User full name" },
+        "role": { "type": "string", "enum": ["admin", "analyst"], "description": "User role: admin (Jefe IT) or analyst (Analista IT)" },
+        "organizationId": { "type": "string", "description": "Organization or department workspace ID" },
+        "photoURL": { "type": "string", "description": "Avatar URL" },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["uid", "email", "displayName", "role", "organizationId"]
+    },
+    "Task": {
+      "title": "Task",
+      "description": "IT Department Task item",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "description": "Readable task ID e.g. TASK-2026-0001" },
+        "title": { "type": "string", "maxLength": 200, "description": "Task summary title" },
+        "description": { "type": "string", "maxLength": 5000, "description": "Markdown description" },
+        "status": { "type": "string", "enum": ["backlog", "pendiente", "en_progreso", "bloqueada", "en_revision", "completada", "cancelada"] },
+        "priority": { "type": "string", "enum": ["baja", "media", "alta", "critica"] },
+        "category": { "type": "string", "enum": ["soporte", "infraestructura", "redes", "desarrollo", "seguridad", "base_de_datos", "compras", "documentacion", "administracion", "otro"] },
+        "assigneeId": { "type": "string" },
+        "assigneeName": { "type": "string" },
+        "creatorId": { "type": "string" },
+        "creatorName": { "type": "string" },
+        "projectId": { "type": "string" },
+        "incidentId": { "type": "string" },
+        "dueDate": { "type": "string" },
+        "dueTime": { "type": "string" },
+        "startDate": { "type": "string" },
+        "estimatedHours": { "type": "number" },
+        "actualHours": { "type": "number" },
+        "tags": { "type": "array" },
+        "isBlocked": { "type": "boolean" },
+        "blockReason": { "type": "string" },
+        "isFocused": { "type": "boolean" },
+        "isArchived": { "type": "boolean" },
+        "organizationId": { "type": "string" },
+        "createdAt": { "type": "string" },
+        "updatedAt": { "type": "string" }
+      },
+      "required": ["title", "status", "priority", "category", "organizationId"]
+    },
+    "Project": {
+      "title": "Project",
+      "description": "IT Project or Infrastructure Initiative",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "description": "PROJ-2026-0001" },
+        "name": { "type": "string", "maxLength": 200 },
+        "description": { "type": "string", "maxLength": 5000 },
+        "status": { "type": "string", "enum": ["planificacion", "activo", "pausado", "bloqueado", "finalizado", "cancelado"] },
+        "priority": { "type": "string", "enum": ["baja", "media", "alta", "critica"] },
+        "leadId": { "type": "string" },
+        "leadName": { "type": "string" },
+        "progress": { "type": "number" },
+        "startDate": { "type": "string" },
+        "targetDate": { "type": "string" },
+        "organizationId": { "type": "string" },
+        "createdAt": { "type": "string" },
+        "updatedAt": { "type": "string" }
+      },
+      "required": ["name", "status", "priority", "leadId", "organizationId"]
+    },
+    "Incident": {
+      "title": "Incident",
+      "description": "Helpdesk Incident ticket",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "description": "INC-2026-0001" },
+        "title": { "type": "string", "maxLength": 200 },
+        "description": { "type": "string", "maxLength": 5000 },
+        "category": { "type": "string", "enum": ["hardware", "software", "red", "internet", "impresora", "correo", "usuario", "servidor", "seguridad", "telefonia", "aplicacion", "otro"] },
+        "impact": { "type": "string", "enum": ["bajo", "medio", "alto", "critico"] },
+        "urgency": { "type": "string", "enum": ["baja", "media", "alta", "critica"] },
+        "priority": { "type": "string", "enum": ["baja", "media", "alta", "critica"] },
+        "status": { "type": "string", "enum": ["abierta", "asignada", "en_progreso", "esperando_usuario", "esperando_proveedor", "resuelta", "cerrada", "cancelada"] },
+        "requester": { "type": "string" },
+        "assigneeId": { "type": "string" },
+        "assigneeName": { "type": "string" },
+        "assetId": { "type": "string" },
+        "diagnosis": { "type": "string" },
+        "solution": { "type": "string" },
+        "rootCause": { "type": "string" },
+        "slaDueDate": { "type": "string" },
+        "organizationId": { "type": "string" },
+        "createdAt": { "type": "string" },
+        "updatedAt": { "type": "string" }
+      },
+      "required": ["title", "category", "impact", "urgency", "priority", "status", "organizationId"]
+    },
+    "Meeting": {
+      "title": "Meeting",
+      "description": "IT Meeting or Sync Session",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "description": "MEET-2026-0001" },
+        "title": { "type": "string", "maxLength": 200 },
+        "objective": { "type": "string" },
+        "startTime": { "type": "string" },
+        "endTime": { "type": "string" },
+        "participants": { "type": "array" },
+        "location": { "type": "string" },
+        "modality": { "type": "string", "enum": ["presencial", "remota", "hibrida"] },
+        "agenda": { "type": "string" },
+        "notes": { "type": "string" },
+        "decisions": { "type": "string" },
+        "status": { "type": "string", "enum": ["programada", "realizada", "cancelada", "reprogramada"] },
+        "organizationId": { "type": "string" },
+        "createdAt": { "type": "string" }
+      },
+      "required": ["title", "startTime", "endTime", "status", "organizationId"]
+    },
+    "Document": {
+      "title": "Document",
+      "description": "Technical Documentation & Knowledge Base Runbook",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "description": "DOC-2026-0001" },
+        "title": { "type": "string", "maxLength": 200 },
+        "content": { "type": "string" },
+        "space": { "type": "string", "enum": ["Infraestructura", "Redes", "Seguridad", "Desarrollo", "Servidores", "Procedimientos", "Manuales", "Runbooks", "Postmortems", "Politicas", "General"] },
+        "parentId": { "type": "string" },
+        "status": { "type": "string", "enum": ["borrador", "publicado", "archivado"] },
+        "authorId": { "type": "string" },
+        "authorName": { "type": "string" },
+        "isFavorite": { "type": "boolean" },
+        "tags": { "type": "array" },
+        "organizationId": { "type": "string" },
+        "createdAt": { "type": "string" },
+        "updatedAt": { "type": "string" }
+      },
+      "required": ["title", "space", "status", "organizationId"]
+    },
+    "Asset": {
+      "title": "Asset",
+      "description": "IT Hardware, Server, License or Infrastructure Asset",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "description": "AST-2026-0001" },
+        "name": { "type": "string", "maxLength": 200 },
+        "type": { "type": "string", "enum": ["servidor", "laptop", "desktop", "impresora", "router", "switch", "access_point", "biometrico", "telefono_ip", "licencia", "dominio", "ssl", "cloud", "suscripcion", "otro"] },
+        "brandModel": { "type": "string" },
+        "serialNumber": { "type": "string" },
+        "tagCode": { "type": "string" },
+        "status": { "type": "string", "enum": ["activo", "mantenimiento", "fuera_de_servicio", "retirado"] },
+        "assignedTo": { "type": "string" },
+        "location": { "type": "string" },
+        "purchaseDate": { "type": "string" },
+        "warrantyExpiration": { "type": "string" },
+        "notes": { "type": "string" },
+        "organizationId": { "type": "string" },
+        "createdAt": { "type": "string" }
+      },
+      "required": ["name", "type", "status", "organizationId"]
+    },
+    "Renewal": {
+      "title": "Renewal",
+      "description": "Purchases, Licenses, Subscriptions, SSL and Domain Renewals",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "description": "REN-2026-0001" },
+        "title": { "type": "string", "maxLength": 200 },
+        "type": { "type": "string", "enum": ["dominio", "licencia", "certificado_ssl", "proveedor", "suscripcion_saas", "compra_hardware", "mantenimiento"] },
+        "vendor": { "type": "string" },
+        "status": { "type": "string", "enum": ["solicitado", "cotizando", "aprobado", "comprado", "activo", "proximo_a_renovar", "vencido", "cancelado"] },
+        "cost": { "type": "number" },
+        "renewalDate": { "type": "string" },
+        "frequency": { "type": "string", "enum": ["mensual", "trimestral", "anual", "bienal", "unico"] },
+        "responsibleId": { "type": "string" },
+        "responsibleName": { "type": "string" },
+        "organizationId": { "type": "string" },
+        "createdAt": { "type": "string" }
+      },
+      "required": ["title", "type", "status", "renewalDate", "organizationId"]
+    },
+    "ActivityLog": {
+      "title": "ActivityLog",
+      "description": "Immutable Audit Log entry",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "actorId": { "type": "string" },
+        "actorName": { "type": "string" },
+        "actorRole": { "type": "string" },
+        "action": { "type": "string" },
+        "module": { "type": "string" },
+        "entityId": { "type": "string" },
+        "entityTitle": { "type": "string" },
+        "details": { "type": "string" },
+        "timestamp": { "type": "string" },
+        "organizationId": { "type": "string" }
+      },
+      "required": ["actorId", "actorName", "action", "module", "timestamp", "organizationId"]
+    },
+    "Notification": {
+      "title": "Notification",
+      "description": "In-app system notification",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "userId": { "type": "string" },
+        "title": { "type": "string" },
+        "message": { "type": "string" },
+        "linkModule": { "type": "string" },
+        "linkEntityId": { "type": "string" },
+        "isRead": { "type": "boolean" },
+        "createdAt": { "type": "string" },
+        "organizationId": { "type": "string" }
+      },
+      "required": ["userId", "title", "message", "isRead", "organizationId"]
+    }
+  },
+  "firestore": {
+    "/users/{userId}": {
+      "schema": { "$ref": "User" },
+      "description": "User profile collection"
+    },
+    "/tasks/{taskId}": {
+      "schema": { "$ref": "Task" },
+      "description": "IT Tasks collection"
+    },
+    "/projects/{projectId}": {
+      "schema": { "$ref": "Project" },
+      "description": "IT Projects collection"
+    },
+    "/incidents/{incidentId}": {
+      "schema": { "$ref": "Incident" },
+      "description": "IT Helpdesk Incidents collection"
+    },
+    "/meetings/{meetingId}": {
+      "schema": { "$ref": "Meeting" },
+      "description": "IT Meetings collection"
+    },
+    "/documents/{documentId}": {
+      "schema": { "$ref": "Document" },
+      "description": "Knowledge Base & Document collection"
+    },
+    "/assets/{assetId}": {
+      "schema": { "$ref": "Asset" },
+      "description": "IT Assets collection"
+    },
+    "/renewals/{renewalId}": {
+      "schema": { "$ref": "Renewal" },
+      "description": "Purchases & License Renewals collection"
+    },
+    "/activityLogs/{logId}": {
+      "schema": { "$ref": "ActivityLog" },
+      "description": "Audit Trail Activity Logs collection"
+    },
+    "/notifications/{notificationId}": {
+      "schema": { "$ref": "Notification" },
+      "description": "In-app notifications collection"
+    }
+  }
+}

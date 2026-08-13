@@ -1,0 +1,12 @@
+node_modules/
+build/
+dist/
+coverage/
+.DS_Store
+*.log
+.env*
+!.env.example
+.env.local
+
+# Firebase (ya no se usa — reemplazado por Supabase)
+firebase-applet-config.json
