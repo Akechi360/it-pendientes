@@ -21,11 +21,11 @@ export const LoginPage: React.FC = () => {
       
       {/* Left Side: Branding / Graphic */}
       <div className="hidden lg:flex lg:w-1/2 relative flex-col justify-between p-12 bg-slate-950 border-r border-border-subtle overflow-hidden">
-        {/* Background Image (Blurred) */}
-        <div className="absolute inset-0 bg-[url('/2279867.jpg')] bg-cover bg-center opacity-40 blur-md scale-105"></div>
+        {/* Background Image */}
+        <div className="absolute inset-0 bg-[url('/2279867.jpg')] bg-cover bg-center opacity-60 scale-105"></div>
         
         {/* Dark Gradient Overlay for text readability */}
-        <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/80 to-transparent"></div>
+        <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/60 to-slate-950/30"></div>
         <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-20 mix-blend-overlay"></div>
 
         <div className="relative z-10">
