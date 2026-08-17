@@ -16,10 +16,12 @@ import {
   ShieldCheck,
   Menu,
   X,
-  LogOut
+  LogOut,
+  KeyRound
 } from 'lucide-react';
 import { useApp, ActiveTab } from '../../context/AppContext';
 import { useAuth } from '../../context/AuthContext';
+import { ChangePasswordModal } from '../auth/ChangePasswordModal';
 
 export const Sidebar: React.FC = () => {
   const { activeTab, setActiveTab, tasks, incidents, renewals } = useApp();
@@ -28,6 +30,7 @@ export const Sidebar: React.FC = () => {
   // Responsive sidebar logic
   const [collapsed, setCollapsed] = useState<boolean>(false);
   const [mobileOpen, setMobileOpen] = useState<boolean>(false);
+  const [isChangePasswordOpen, setIsChangePasswordOpen] = useState<boolean>(false);
 
   // Close mobile sidebar on route change
   useEffect(() => {
@@ -159,12 +162,19 @@ export const Sidebar: React.FC = () => {
           )}
         </div>
 
-        {/* Logout Button */}
+        {/* Action Buttons: Change Password & Logout */}
         {!collapsed && (
-          <div className="mt-4 pt-3 border-t border-border-subtle">
+          <div className="mt-4 pt-3 border-t border-border-subtle space-y-1">
+            <button
+              onClick={() => setIsChangePasswordOpen(true)}
+              className="w-full flex items-center justify-center gap-2 py-1.5 rounded-lg text-xs font-semibold text-content-secondary hover:bg-surface-raised hover:text-cyan-400 transition-colors"
+            >
+              <KeyRound size={14} />
+              Cambiar Contraseña
+            </button>
             <button
               onClick={() => signOut()}
-              className="w-full flex items-center justify-center gap-2 py-2 rounded-lg text-xs font-bold text-content-muted hover:bg-surface-raised hover:text-rose-400 transition-colors"
+              className="w-full flex items-center justify-center gap-2 py-1.5 rounded-lg text-xs font-bold text-content-muted hover:bg-surface-raised hover:text-rose-400 transition-colors"
             >
               <LogOut size={14} />
               Cerrar Sesión
@@ -220,6 +230,12 @@ export const Sidebar: React.FC = () => {
         </button>
         <SidebarContent />
       </aside>
+
+      {/* Change Password Modal */}
+      <ChangePasswordModal
+        isOpen={isChangePasswordOpen}
+        onClose={() => setIsChangePasswordOpen(false)}
+      />
     </>
   );
 };

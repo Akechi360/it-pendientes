@@ -10,6 +10,7 @@ interface AuthContextType {
   authError: string | null;
   signIn: (email: string, password: string) => Promise<void>;
   signOut: () => Promise<void>;
+  changePassword: (newPassword: string) => Promise<{ success: boolean; error?: string }>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -29,9 +30,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           const newProfile: UserProfile = {
             uid: session.user.id,
             email: session.user.email || '',
-            displayName: session.user.email?.split('@')[0] || 'Usuario IT',
-            role: 'admin',
-            title: 'Jefe de Sistemas',
+            displayName: session.user.email?.includes('sistemas') ? 'Eduardo Toro' : (session.user.email?.split('@')[0] || 'Usuario IT'),
+            role: session.user.email?.includes('sistemas') ? 'analyst' : 'admin',
+            title: session.user.email?.includes('sistemas') ? 'Analista IT' : 'Jefe de Sistemas',
             organizationId: 'org_sistemas_main'
           };
           // Import y utiliza upsertUserProfile
@@ -72,10 +73,22 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setCurrentUser(null);
   };
 
+  const changePassword = async (newPassword: string): Promise<{ success: boolean; error?: string }> => {
+    try {
+      const { error } = await supabase.auth.updateUser({ password: newPassword });
+      if (error) {
+        return { success: false, error: error.message };
+      }
+      return { success: true };
+    } catch (err: any) {
+      return { success: false, error: err.message || 'Error al actualizar la contraseña' };
+    }
+  };
+
   const isAdmin = currentUser?.role === 'admin';
 
   return (
-    <AuthContext.Provider value={{ currentUser, isAdmin, loading, authError, signIn, signOut }}>
+    <AuthContext.Provider value={{ currentUser, isAdmin, loading, authError, signIn, signOut, changePassword }}>
       {children}
     </AuthContext.Provider>
   );

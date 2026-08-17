@@ -21,7 +21,19 @@ Aplicación web profesional, ágil, segura y responsive diseñada específicamen
 - **Iconos y Estilos**: Lucide React, Tema Oscuro Slate/Charcoal corporativo con soporte para Modo Claro.
 - **Métricas**: Recharts.
 - **Fechas**: Date-fns.
-- **Backend & DB**: Firebase Authentication, Cloud Firestore (con sincronización en tiempo real), Firebase Storage.
+- **Backend & DB**: Supabase Auth, Supabase Database (PostgreSQL con Realtime y RLS), Supabase Storage.
+
+## 🔐 Credenciales Iniciales de Acceso
+- **Analista IT (Eduardo Toro)**:
+  - **Email**: `sistemas@clinicaieq.com`
+  - **Contraseña inicial**: `EduardoIT2026!`
+  - **Rol**: `analyst`
+- **Jefe de Sistemas (Admin)**:
+  - **Email**: `admin@clinicaieq.com`
+  - **Contraseña inicial**: `AdminIT2026!`
+  - **Rol**: `admin`
+
+*Nota: Ambos usuarios pueden cambiar su contraseña en cualquier momento desde la barra lateral ("Cambiar Contraseña").*
 
 ## 📦 Instalación y Ejecución Local
 
@@ -30,7 +42,10 @@ Aplicación web profesional, ágil, segura y responsive diseñada específicamen
    npm install
    ```
 
-2. Configurar variables de entorno en `.env.example` o asegurar la existencia de `firebase-applet-config.json`.
+2. Configurar variables de entorno copiando `.env.example` a `.env.local`:
+   ```bash
+   cp .env.example .env.local
+   ```
 
 3. Iniciar el servidor de desarrollo:
    ```bash

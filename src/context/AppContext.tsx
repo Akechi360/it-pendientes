@@ -131,17 +131,17 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   };
 
   useEffect(() => {
-    // Realtime listeners
-    const unsubTasks = subscribeCollection<TaskItem>('tasks', setTasks);
-    const unsubProjects = subscribeCollection<ProjectItem>('projects', setProjects);
-    const unsubIncidents = subscribeCollection<IncidentItem>('incidents', setIncidents);
-    const unsubMeetings = subscribeCollection<MeetingItem>('meetings', setMeetings);
-    const unsubDocs = subscribeCollection<DocumentItem>('documents', setDocuments);
-    const unsubAssets = subscribeCollection<AssetItem>('assets', setAssets);
-    const unsubRenewals = subscribeCollection<RenewalItem>('renewals', setRenewals);
-    const unsubLogs = subscribeCollection<ActivityLogItem>('activity_logs', setActivityLogs);
-    const unsubNotifs = subscribeCollection<NotificationItem>('notifications', setNotifications);
-    const unsubFiles = subscribeCollection<FileItem>('files', setFiles);
+    // Realtime listeners con fallback a datos semilla
+    const unsubTasks = subscribeCollection<TaskItem>('tasks', setTasks, SEED_TASKS);
+    const unsubProjects = subscribeCollection<ProjectItem>('projects', setProjects, SEED_PROJECTS);
+    const unsubIncidents = subscribeCollection<IncidentItem>('incidents', setIncidents, SEED_INCIDENTS);
+    const unsubMeetings = subscribeCollection<MeetingItem>('meetings', setMeetings, SEED_MEETINGS);
+    const unsubDocs = subscribeCollection<DocumentItem>('documents', setDocuments, SEED_DOCUMENTS);
+    const unsubAssets = subscribeCollection<AssetItem>('assets', setAssets, SEED_ASSETS);
+    const unsubRenewals = subscribeCollection<RenewalItem>('renewals', setRenewals, SEED_RENEWALS);
+    const unsubLogs = subscribeCollection<ActivityLogItem>('activity_logs', setActivityLogs, SEED_LOGS);
+    const unsubNotifs = subscribeCollection<NotificationItem>('notifications', setNotifications, SEED_NOTIFICATIONS);
+    const unsubFiles = subscribeCollection<FileItem>('files', setFiles, SEED_FILES);
 
     return () => {
       unsubTasks();

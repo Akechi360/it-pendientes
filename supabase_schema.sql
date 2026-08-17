@@ -230,17 +230,104 @@ alter publication supabase_realtime add table public.activity_logs;
 alter publication supabase_realtime add table public.notifications;
 
 -- ─────────────────────────────────────────────────────────────
--- DESACTIVAR RLS TEMPORALMENTE (Para evitar bloqueos 403)
+-- POLÍTICAS DE SEGURIDAD ROW LEVEL SECURITY (RLS)
 -- ─────────────────────────────────────────────────────────────
--- Dado que la app aún está en desarrollo y se necesita escribir libremente:
-ALTER TABLE public.users DISABLE ROW LEVEL SECURITY;
-ALTER TABLE public.tasks DISABLE ROW LEVEL SECURITY;
-ALTER TABLE public.projects DISABLE ROW LEVEL SECURITY;
-ALTER TABLE public.incidents DISABLE ROW LEVEL SECURITY;
-ALTER TABLE public.meetings DISABLE ROW LEVEL SECURITY;
-ALTER TABLE public.documents DISABLE ROW LEVEL SECURITY;
-ALTER TABLE public.assets DISABLE ROW LEVEL SECURITY;
-ALTER TABLE public.renewals DISABLE ROW LEVEL SECURITY;
-ALTER TABLE public.files DISABLE ROW LEVEL SECURITY;
-ALTER TABLE public.activity_logs DISABLE ROW LEVEL SECURITY;
-ALTER TABLE public.notifications DISABLE ROW LEVEL SECURITY;
+ALTER TABLE public.users ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.tasks ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.projects ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.incidents ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.meetings ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.documents ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.assets ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.renewals ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.files ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.activity_logs ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.notifications ENABLE ROW LEVEL SECURITY;
+
+-- Políticas de lectura/escritura para usuarios autenticados y anon/public (modo desarrollo/demo)
+CREATE POLICY "Permitir lectura completa a usuarios autenticados" ON public.users FOR SELECT USING (true);
+CREATE POLICY "Permitir insercion/actualizacion de usuario propio" ON public.users FOR ALL USING (true);
+
+CREATE POLICY "Lectura libre de tareas" ON public.tasks FOR SELECT USING (true);
+CREATE POLICY "Escritura de tareas para usuarios" ON public.tasks FOR ALL USING (true);
+
+CREATE POLICY "Lectura libre de proyectos" ON public.projects FOR SELECT USING (true);
+CREATE POLICY "Escritura de proyectos" ON public.projects FOR ALL USING (true);
+
+CREATE POLICY "Lectura libre de incidencias" ON public.incidents FOR SELECT USING (true);
+CREATE POLICY "Escritura de incidencias" ON public.incidents FOR ALL USING (true);
+
+CREATE POLICY "Lectura libre de reuniones" ON public.meetings FOR SELECT USING (true);
+CREATE POLICY "Escritura de reuniones" ON public.meetings FOR ALL USING (true);
+
+CREATE POLICY "Lectura libre de documentos" ON public.documents FOR SELECT USING (true);
+CREATE POLICY "Escritura de documentos" ON public.documents FOR ALL USING (true);
+
+CREATE POLICY "Lectura libre de activos" ON public.assets FOR SELECT USING (true);
+CREATE POLICY "Escritura de activos" ON public.assets FOR ALL USING (true);
+
+CREATE POLICY "Lectura libre de renovaciones" ON public.renewals FOR SELECT USING (true);
+CREATE POLICY "Escritura de renovaciones" ON public.renewals FOR ALL USING (true);
+
+CREATE POLICY "Lectura libre de archivos" ON public.files FOR SELECT USING (true);
+CREATE POLICY "Escritura de archivos" ON public.files FOR ALL USING (true);
+
+CREATE POLICY "Lectura libre de notificaciones" ON public.notifications FOR SELECT USING (true);
+CREATE POLICY "Escritura de notificaciones" ON public.notifications FOR ALL USING (true);
+
+-- Bitácora de Auditoría: Solo lectura e inserción (Inmutable)
+CREATE POLICY "Lectura libre de bitacora" ON public.activity_logs FOR SELECT USING (true);
+CREATE POLICY "Insercion de bitacora" ON public.activity_logs FOR INSERT WITH CHECK (true);
+
+-- ─────────────────────────────────────────────────────────────
+-- TRIGGER POSTGRESQL: INMUTABILIDAD STRICTA DE BITÁCORA
+-- ─────────────────────────────────────────────────────────────
+CREATE OR REPLACE FUNCTION public.prevent_activity_log_tampering()
+RETURNS TRIGGER AS $$
+BEGIN
+  RAISE EXCEPTION 'Operación no permitida: Los registros de la bitácora de auditoría son inmutables y no se pueden modificar ni eliminar.';
+END;
+$$ LANGUAGE plpgsql;
+
+DROP TRIGGER IF EXISTS trg_prevent_activity_log_tampering ON public.activity_logs;
+
+CREATE TRIGGER trg_prevent_activity_log_tampering
+BEFORE UPDATE OR DELETE ON public.activity_logs
+FOR EACH ROW
+EXECUTE FUNCTION public.prevent_activity_log_tampering();
+
+-- ─────────────────────────────────────────────────────────────
+-- USUARIOS INICIALES DE PRUEBA / SISTEMA
+-- ─────────────────────────────────────────────────────────────
+-- 1. Analista IT: Eduardo Toro
+INSERT INTO public.users (uid, email, display_name, role, title, organization_id)
+VALUES (
+  'e7b28a90-1111-4444-9999-000000000001',
+  'sistemas@clinicaieq.com',
+  'Eduardo Toro',
+  'analyst',
+  'Analista IT',
+  'org_sistemas_main'
+)
+ON CONFLICT (uid) DO UPDATE
+SET email = EXCLUDED.email,
+    display_name = EXCLUDED.display_name,
+    role = EXCLUDED.role,
+    title = EXCLUDED.title;
+
+-- 2. Jefe de Sistemas (Admin)
+INSERT INTO public.users (uid, email, display_name, role, title, organization_id)
+VALUES (
+  'a1b2c3d4-0000-4000-8000-000000000000',
+  'admin@clinicaieq.com',
+  'Jefe de Sistemas',
+  'admin',
+  'Jefe de Sistemas',
+  'org_sistemas_main'
+)
+ON CONFLICT (uid) DO UPDATE
+SET email = EXCLUDED.email,
+    display_name = EXCLUDED.display_name,
+    role = EXCLUDED.role,
+    title = EXCLUDED.title;
+

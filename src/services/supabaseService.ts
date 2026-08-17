@@ -116,13 +116,17 @@ export function subscribeCollection<T>(
     .from(tableName)
     .select('*')
     .then(({ data, error }) => {
-      if (error) {
-        console.warn(`[Supabase] Fetch inicial fallido para ${tableName}:`, error.message);
-        callback([]);
+      if (error || !data || data.length === 0) {
+        console.warn(`[Supabase] Utilizando respaldo demo para ${tableName}:`, error?.message || 'Tabla vacía o inaccesible');
+        callback(fallbackData);
       } else {
-        const items = (data ?? []).map((row) => toCamel<T>(row as Record<string, unknown>));
+        const items = data.map((row) => toCamel<T>(row as Record<string, unknown>));
         callback(items);
       }
+    })
+    .catch((err) => {
+      console.warn(`[Supabase] Excepción en fetch para ${tableName}:`, err);
+      callback(fallbackData);
     });
 
   // Suscripción realtime (Postgres Changes)
@@ -132,12 +136,11 @@ export function subscribeCollection<T>(
       'postgres_changes',
       { event: '*', schema: 'public', table: tableName },
       () => {
-        // Re-fetch completo al detectar cualquier cambio
         supabase
           .from(tableName)
           .select('*')
           .then(({ data }) => {
-            if (data) {
+            if (data && data.length > 0) {
               callback(data.map((row) => toCamel<T>(row as Record<string, unknown>)));
             }
           });
@@ -146,7 +149,7 @@ export function subscribeCollection<T>(
     .subscribe((status) => {
       if (status === 'CHANNEL_ERROR') {
         console.warn(`[Supabase] Error en canal realtime para ${tableName}.`);
-        callback([]);
+        callback(fallbackData);
       }
     });
 
