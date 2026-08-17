@@ -31,7 +31,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             email: session.user.email || '',
             displayName: session.user.email?.split('@')[0] || 'Usuario IT',
             role: 'admin',
-            title: 'Analista IT',
+            title: 'Jefe de Sistemas',
             organizationId: 'org_sistemas_main'
           };
           // Import y utiliza upsertUserProfile
