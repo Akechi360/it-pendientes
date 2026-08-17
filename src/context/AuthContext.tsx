@@ -41,8 +41,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         }
 
         setCurrentUser(profile);
-        // Seed inicial de datos si las tablas están vacías
-        await checkAndSeedSupabase();
       } else {
         setCurrentUser(null);
       }
