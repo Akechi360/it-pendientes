@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Server, Eye, EyeOff, Lock, Mail, AlertCircle, Shield } from 'lucide-react';
+import { Server, Eye, EyeOff, Lock, Mail, AlertCircle, Shield, ArrowRight } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 
 export const LoginPage: React.FC = () => {
@@ -16,50 +16,76 @@ export const LoginPage: React.FC = () => {
     setIsSubmitting(false);
   };
 
-  const fillCredentials = (role: 'admin' | 'analyst') => {
-    if (role === 'admin') {
-      setEmail('admin@portal-it.com');
-      setPassword('Admin@2026!');
-    } else {
-      setEmail('analista@portal-it.com');
-      setPassword('Analista@2026!');
-    }
-  };
-
   return (
-    <div
-      className="min-h-screen bg-slate-950 flex items-center justify-center p-4 font-sans"
-      style={{
-        backgroundImage:
-          'radial-gradient(ellipse at 20% 50%, rgba(6,182,212,0.07) 0%, transparent 55%),' +
-          'radial-gradient(ellipse at 80% 20%, rgba(14,165,233,0.05) 0%, transparent 45%)',
-      }}
-    >
-      <div className="w-full max-w-sm">
-        {/* Logo & Title */}
-        <div className="text-center mb-8">
-          <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-gradient-to-br from-cyan-500 to-sky-600 shadow-xl shadow-cyan-500/25 mb-5">
-            <Server size={30} className="text-white" />
+    <div className="flex min-h-screen bg-canvas font-sans overflow-hidden">
+      
+      {/* Left Side: Branding / Graphic */}
+      <div className="hidden lg:flex lg:w-1/2 relative flex-col justify-between p-12 bg-[#09090b] border-r border-border-subtle overflow-hidden">
+        {/* Background Effects */}
+        <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-20 mix-blend-overlay"></div>
+        <div className="absolute -top-1/4 -left-1/4 w-1/2 h-1/2 bg-cyan-500/20 rounded-full blur-[120px]"></div>
+        <div className="absolute bottom-0 right-0 w-3/4 h-3/4 bg-blue-600/10 rounded-full blur-[150px]"></div>
+        
+        {/* Grid Pattern */}
+        <div className="absolute inset-0 bg-[linear-gradient(to_right,#80808012_1px,transparent_1px),linear-gradient(to_bottom,#80808012_1px,transparent_1px)] bg-[size:24px_24px]"></div>
+
+        <div className="relative z-10">
+          <div className="inline-flex items-center gap-3 text-content-primary">
+            <div className="w-10 h-10 rounded-xl bg-cyan-500/10 border border-cyan-500/20 flex items-center justify-center">
+              <Server className="w-5 h-5 text-cyan-400" />
+            </div>
+            <span className="font-bold tracking-tight text-xl">Portal IT</span>
           </div>
-          <h1 className="text-2xl font-bold text-slate-100 tracking-tight">Portal IT / Sistemas</h1>
-          <p className="text-slate-500 text-sm mt-1.5">Gestión integral del departamento tecnológico</p>
         </div>
 
-        {/* Card */}
-        <div className="bg-slate-900/80 border border-slate-800 rounded-2xl p-7 shadow-2xl backdrop-blur-sm">
-          <h2 className="text-base font-semibold text-slate-300 mb-5 flex items-center gap-2">
-            <Shield size={15} className="text-cyan-500" />
-            Acceso al sistema
-          </h2>
+        <div className="relative z-10 max-w-md">
+          <h1 className="text-4xl xl:text-5xl font-bold text-white tracking-tight leading-[1.1] mb-6">
+            IT Operations <br />
+            <span className="text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-blue-500">Command Center</span>
+          </h1>
+          <p className="text-content-secondary text-lg leading-relaxed">
+            Gestión centralizada de infraestructura, incidencias operativas y proyectos estratégicos del departamento de tecnología.
+          </p>
+          
+          <div className="mt-10 flex items-center gap-4 text-xs font-mono text-content-muted">
+            <div className="flex items-center gap-2">
+              <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></div>
+              Sistemas Operativos
+            </div>
+            <div className="w-1 h-1 rounded-full bg-border-subtle"></div>
+            <div>Acceso Seguro Requiere Autorización</div>
+          </div>
+        </div>
+      </div>
 
-          <form onSubmit={handleSubmit} className="space-y-4" noValidate>
+      {/* Right Side: Login Form */}
+      <div className="w-full lg:w-1/2 flex items-center justify-center p-6 sm:p-12 relative z-10 bg-canvas">
+        <div className="w-full max-w-md">
+          
+          {/* Mobile Header (Hidden on Desktop) */}
+          <div className="lg:hidden text-center mb-10">
+            <div className="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-cyan-500/10 border border-cyan-500/20 mb-5">
+              <Server size={26} className="text-cyan-400" />
+            </div>
+            <h1 className="text-2xl font-bold text-content-primary tracking-tight">Portal IT</h1>
+            <p className="text-content-secondary text-sm mt-1.5">Centro de Operaciones</p>
+          </div>
+
+          <div className="mb-8">
+            <h2 className="text-2xl font-bold text-content-primary mb-2">Iniciar sesión</h2>
+            <p className="text-content-secondary text-sm">
+              Introduce tus credenciales corporativas para acceder.
+            </p>
+          </div>
+
+          <form onSubmit={handleSubmit} className="space-y-5" noValidate>
             {/* Email */}
             <div>
-              <label htmlFor="login-email" className="block text-xs font-medium text-slate-500 mb-1.5 uppercase tracking-wider">
-                Correo electrónico
+              <label htmlFor="login-email" className="block text-[10px] font-bold text-content-muted mb-1.5 uppercase tracking-wider">
+                Correo Electrónico
               </label>
               <div className="relative">
-                <Mail size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-600 pointer-events-none" />
+                <Mail size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-content-muted pointer-events-none" />
                 <input
                   id="login-email"
                   type="email"
@@ -68,18 +94,18 @@ export const LoginPage: React.FC = () => {
                   required
                   autoComplete="email"
                   placeholder="usuario@empresa.com"
-                  className="w-full bg-slate-800 border border-slate-700/80 rounded-xl pl-9 pr-4 py-2.5 text-slate-200 placeholder:text-slate-600 text-sm focus:outline-none focus:ring-2 focus:ring-cyan-500/40 focus:border-cyan-500/60 transition-all duration-150"
+                  className="w-full bg-surface border border-border-subtle rounded-xl pl-10 pr-4 py-3 text-content-primary placeholder-content-muted text-sm focus:outline-none focus:ring-2 focus:ring-cyan-500/20 focus:border-cyan-500/50 transition-all duration-300"
                 />
               </div>
             </div>
 
             {/* Password */}
             <div>
-              <label htmlFor="login-password" className="block text-xs font-medium text-slate-500 mb-1.5 uppercase tracking-wider">
+              <label htmlFor="login-password" className="block text-[10px] font-bold text-content-muted mb-1.5 uppercase tracking-wider">
                 Contraseña
               </label>
               <div className="relative">
-                <Lock size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-600 pointer-events-none" />
+                <Lock size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-content-muted pointer-events-none" />
                 <input
                   id="login-password"
                   type={showPassword ? 'text' : 'password'}
@@ -88,24 +114,24 @@ export const LoginPage: React.FC = () => {
                   required
                   autoComplete="current-password"
                   placeholder="••••••••"
-                  className="w-full bg-slate-800 border border-slate-700/80 rounded-xl pl-9 pr-10 py-2.5 text-slate-200 placeholder:text-slate-600 text-sm focus:outline-none focus:ring-2 focus:ring-cyan-500/40 focus:border-cyan-500/60 transition-all duration-150"
+                  className="w-full bg-surface border border-border-subtle rounded-xl pl-10 pr-10 py-3 text-content-primary placeholder-content-muted text-sm focus:outline-none focus:ring-2 focus:ring-cyan-500/20 focus:border-cyan-500/50 transition-all duration-300"
                 />
                 <button
                   type="button"
                   onClick={() => setShowPassword((v) => !v)}
                   aria-label={showPassword ? 'Ocultar contraseña' : 'Mostrar contraseña'}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-600 hover:text-slate-400 transition-colors"
+                  className="absolute right-3.5 top-1/2 -translate-y-1/2 text-content-muted hover:text-content-primary transition-colors"
                 >
-                  {showPassword ? <EyeOff size={14} /> : <Eye size={14} />}
+                  {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
                 </button>
               </div>
             </div>
 
             {/* Error message */}
             {authError && (
-              <div className="flex items-start gap-2.5 p-3 bg-rose-500/10 border border-rose-500/25 rounded-xl">
-                <AlertCircle size={15} className="text-rose-400 mt-0.5 shrink-0" />
-                <p className="text-rose-400 text-sm leading-snug">{authError}</p>
+              <div className="flex items-start gap-3 p-3.5 bg-rose-500/10 border border-rose-500/20 rounded-xl animate-in fade-in slide-in-from-top-2">
+                <AlertCircle size={16} className="text-rose-400 mt-0.5 shrink-0" />
+                <p className="text-rose-400 text-sm leading-snug font-medium">{authError}</p>
               </div>
             )}
 
@@ -114,54 +140,26 @@ export const LoginPage: React.FC = () => {
               id="login-submit-btn"
               type="submit"
               disabled={isSubmitting || loading || !email || !password}
-              className="w-full mt-2 py-2.5 rounded-xl bg-cyan-500 hover:bg-cyan-400 active:bg-cyan-600 disabled:opacity-40 disabled:cursor-not-allowed text-slate-950 font-semibold text-sm transition-all duration-150 flex items-center justify-center gap-2 shadow-lg shadow-cyan-500/20"
+              className="w-full mt-4 py-3 rounded-xl bg-content-primary hover:bg-white text-canvas active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed font-bold text-sm transition-all duration-300 flex items-center justify-center gap-2"
             >
               {isSubmitting ? (
                 <>
-                  <span className="w-4 h-4 border-2 border-slate-950/25 border-t-slate-950 rounded-full animate-spin" />
+                  <span className="w-4 h-4 border-2 border-canvas/30 border-t-canvas rounded-full animate-spin" />
                   <span>Autenticando...</span>
                 </>
               ) : (
-                'Iniciar sesión'
+                <>
+                  Iniciar Sesión <ArrowRight size={16} />
+                </>
               )}
             </button>
           </form>
 
-          {/* Demo credentials */}
-          <div className="mt-6 pt-5 border-t border-slate-800/80">
-            <p className="text-xs text-slate-600 text-center mb-3 font-medium uppercase tracking-wider">
-              Acceso demo
-            </p>
-            <div className="grid grid-cols-2 gap-2">
-              <button
-                id="demo-admin-btn"
-                type="button"
-                onClick={() => fillCredentials('admin')}
-                className="group p-3 rounded-xl bg-slate-800/70 hover:bg-slate-800 border border-slate-700/60 hover:border-cyan-500/40 text-left transition-all duration-150"
-              >
-                <p className="text-xs font-semibold text-slate-300 group-hover:text-cyan-400 transition-colors">
-                  Jefe IT
-                </p>
-                <p className="text-xs text-slate-600 font-mono mt-0.5 truncate">admin@portal-it.com</p>
-              </button>
-              <button
-                id="demo-analyst-btn"
-                type="button"
-                onClick={() => fillCredentials('analyst')}
-                className="group p-3 rounded-xl bg-slate-800/70 hover:bg-slate-800 border border-slate-700/60 hover:border-emerald-500/40 text-left transition-all duration-150"
-              >
-                <p className="text-xs font-semibold text-slate-300 group-hover:text-emerald-400 transition-colors">
-                  Analista IT
-                </p>
-                <p className="text-xs text-slate-600 font-mono mt-0.5 truncate">analista@portal-it.com</p>
-              </button>
-            </div>
-          </div>
+          <p className="text-center text-content-muted text-[11px] mt-8 flex items-center justify-center gap-1.5">
+            <Shield size={12} />
+            Protegido por Supabase Auth
+          </p>
         </div>
-
-        <p className="text-center text-slate-700 text-xs mt-5">
-          Portal IT · Uso interno corporativo
-        </p>
       </div>
     </div>
   );

@@ -35,17 +35,25 @@
   }
 
   .dark {
-    --canvas: 224 52% 7%;
-    --surface: 220 47% 10%;
-    --surface-raised: 218 47% 13%;
-    --surface-hover: 214 45% 17%;
+    --canvas: 240 10% 3%;
+    --surface: 240 10% 7%;
+    --surface-raised: 240 10% 11%;
+    --surface-hover: 240 10% 15%;
 
-    --content-primary: 210 40% 96%;
-    --content-secondary: 215 20% 65%;
-    --content-muted: 215 16% 47%;
+    --content-primary: 0 0% 98%;
+    --content-secondary: 240 5% 70%;
+    --content-muted: 240 5% 45%;
 
-    --border-subtle: 215 20% 20%;
+    --border-subtle: 240 10% 15%;
     --border-active: 189 94% 43%;
+  }
+
+  /* Font overrides */
+  body {
+    font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  }
+  .font-mono {
+    font-family: 'JetBrains Mono', monospace;
   }
 
   /* Reset global scrollbar style for premium feel */

@@ -13,7 +13,7 @@ export const MetricInline: React.FC<MetricInlineProps> = ({ label, value, icon, 
   return (
     <div 
       onClick={onClick}
-      className={`flex items-center justify-between p-3 lg:p-4 rounded-xl bg-surface border border-border-subtle hover:bg-surface-hover transition-colors ${onClick ? 'cursor-pointer' : ''}`}
+      className={`flex items-center justify-between p-3 lg:p-4 rounded-xl bg-surface border border-border-subtle hover:bg-surface-hover hover:-translate-y-1 hover:shadow-xl hover:shadow-cyan-500/5 transition-all duration-300 ${onClick ? 'cursor-pointer active:scale-95' : ''}`}
     >
       <div className="flex items-center gap-3">
         <div className={`p-2 rounded-lg bg-canvas border border-border-subtle ${colorClass}`}>

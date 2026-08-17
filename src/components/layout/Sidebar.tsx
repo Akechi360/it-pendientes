@@ -222,7 +222,7 @@ export const Sidebar: React.FC = () => {
 
       {/* Desktop Sidebar */}
       <aside
-        className={`hidden md:flex relative flex-col justify-between border-r border-border-subtle bg-surface transition-all duration-300 z-30 shrink-0 ${
+        className={`hidden md:flex relative flex-col justify-between border-r border-border-subtle bg-surface/40 backdrop-blur-xl transition-all duration-300 z-30 shrink-0 ${
           collapsed ? 'w-20' : 'w-64'
         }`}
       >
