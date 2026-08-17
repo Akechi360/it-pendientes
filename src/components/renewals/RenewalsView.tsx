@@ -1,101 +1,100 @@
 import React, { useState } from 'react';
 import {
   RefreshCw,
-  Plus,
   Search,
-  Server,
-  Clock,
-  ShieldAlert,
-  Calendar,
-  AlertTriangle,
   DollarSign
 } from 'lucide-react';
 import { useApp } from '../../context/AppContext';
+import { EntityPageHeader } from '../shared/EntityPageHeader';
+import { StatusBadge } from '../shared/StatusBadge';
+import { AssigneeAvatar } from '../shared/AssigneeAvatar';
+import { DueDateIndicator } from '../shared/DueDateIndicator';
 
 export const RenewalsView: React.FC = () => {
-  const { renewals, openQuickCreate, isDarkTheme } = useApp();
+  const { renewals, openQuickCreate } = useApp();
   const [searchQuery, setSearchQuery] = useState('');
 
   const filteredRenewals = renewals.filter((r) => r.title.toLowerCase().includes(searchQuery.toLowerCase()) || r.vendor.toLowerCase().includes(searchQuery.toLowerCase()));
 
   return (
     <div className="space-y-6 pb-12 animate-in fade-in duration-300">
-      {/* Header */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-4 border-b border-slate-800">
-        <div>
-          <h1 className="text-2xl font-bold text-white flex items-center gap-2">
-            <RefreshCw className="w-6 h-6 text-purple-400" /> Control de Compras & Renovaciones
-          </h1>
-          <p className="text-xs text-slate-400 mt-1">
-            Gestión de vencimientos de licencias, dominios, certificados SSL, garantías y suscripciones de software.
-          </p>
-        </div>
+      <EntityPageHeader 
+        icon={<RefreshCw className="w-5 h-5" />}
+        title="Control de Compras & Renovaciones"
+        description="Gestión de vencimientos de licencias, dominios, certificados SSL, garantías y suscripciones de software."
+        actionLabel="Registrar Renovación"
+        onAction={() => openQuickCreate('renewal')}
+      />
 
-        <button
-          onClick={() => openQuickCreate('renewal')}
-          className="flex items-center gap-2 px-4 py-2.5 rounded-xl font-bold text-xs bg-gradient-to-r from-purple-500 to-indigo-600 hover:from-purple-400 hover:to-indigo-500 text-white shadow-lg shadow-purple-500/20 transition-all self-start md:self-auto"
-        >
-          <Plus className="w-4 h-4" /> Registrar Renovación
-        </button>
-      </div>
-
-      {/* Search Bar */}
-      <div className={`p-4 rounded-2xl border ${isDarkTheme ? 'bg-slate-900/80 border-slate-800' : 'bg-white border-slate-200'}`}>
-        <div className="relative max-w-sm">
-          <Search className="w-4 h-4 text-slate-500 absolute left-3 top-2.5" />
+      {/* Filter Bar */}
+      <div className="p-3 lg:p-4 rounded-xl border border-border-subtle bg-surface flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div className="relative flex-1 max-w-sm">
+          <Search className="w-3.5 h-3.5 text-content-muted absolute left-3 top-2" />
           <input
             type="text"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             placeholder="Buscar por servicio o proveedor..."
-            className="w-full pl-9 pr-3 py-1.5 rounded-xl bg-slate-950 border border-slate-800 text-xs text-slate-200 placeholder-slate-500 focus:outline-none focus:border-purple-500"
+            className="w-full pl-8 pr-3 py-1.5 rounded-lg bg-surface-raised border border-border-subtle text-xs text-content-primary placeholder-content-muted focus:outline-none focus:border-violet-500/50"
           />
         </div>
       </div>
 
-      {/* Renewals Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        {filteredRenewals.map((renewal) => (
-          <div
-            key={renewal.id}
-            className={`p-5 rounded-2xl border space-y-3 transition-all ${
-              isDarkTheme ? 'bg-slate-900/80 border-slate-800' : 'bg-white border-slate-200'
-            }`}
-          >
-            <div className="flex items-start justify-between gap-3">
-              <div>
-                <span className="font-mono text-xs font-bold text-purple-400 bg-purple-500/10 px-2.5 py-0.5 rounded border border-purple-500/20">
-                  {renewal.id}
-                </span>
-                <h3 className="text-base font-bold text-white mt-1.5">{renewal.title}</h3>
-              </div>
-              <span className={`text-[10px] px-2 py-0.5 rounded font-mono font-bold uppercase ${
-                renewal.status === 'vencido' ? 'bg-rose-500/20 text-rose-400 border border-rose-500/30' : 'bg-amber-500/20 text-amber-400'
-              }`}>
-                {renewal.status.replace('_', ' ')}
-              </span>
-            </div>
-
-            <div className="grid grid-cols-2 gap-3 text-xs text-slate-400 p-3 rounded-xl bg-slate-950 border border-slate-800">
-              <div>
-                <span className="block text-[10px] text-slate-500 uppercase font-mono">Proveedor</span>
-                <strong className="text-slate-200 font-medium">{renewal.vendor}</strong>
-              </div>
-              <div>
-                <span className="block text-[10px] text-slate-500 uppercase font-mono">Costo Estimado</span>
-                <strong className="text-emerald-400 font-mono font-medium">${renewal.cost} USD</strong>
-              </div>
-              <div>
-                <span className="block text-[10px] text-slate-500 uppercase font-mono">Fecha Vencimiento</span>
-                <strong className="text-purple-400 font-mono font-medium">{renewal.renewalDate}</strong>
-              </div>
-              <div>
-                <span className="block text-[10px] text-slate-500 uppercase font-mono">Frecuencia</span>
-                <strong className="text-slate-200 font-medium capitalize">{renewal.frequency}</strong>
-              </div>
-            </div>
-          </div>
-        ))}
+      {/* TABLE VIEW */}
+      <div className="rounded-xl border border-border-subtle overflow-hidden bg-surface shadow-sm">
+        <div className="overflow-x-auto custom-scrollbar">
+          <table className="w-full text-left text-xs whitespace-nowrap">
+            <thead className="bg-surface-raised text-content-muted font-mono text-[10px] uppercase border-b border-border-subtle">
+              <tr>
+                <th className="px-4 py-3 font-semibold">Estado</th>
+                <th className="px-4 py-3 font-semibold">ID / Servicio</th>
+                <th className="px-4 py-3 font-semibold">Proveedor</th>
+                <th className="px-4 py-3 font-semibold">Costo Est.</th>
+                <th className="px-4 py-3 font-semibold">Frecuencia</th>
+                <th className="px-4 py-3 font-semibold">Responsable</th>
+                <th className="px-4 py-3 font-semibold">Vencimiento</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-border-subtle text-content-secondary">
+              {filteredRenewals.length === 0 ? (
+                <tr><td colSpan={7} className="text-center py-10">No hay resultados</td></tr>
+              ) : (
+                filteredRenewals.map((renewal) => (
+                  <tr
+                    key={renewal.id}
+                    className="hover:bg-surface-hover cursor-pointer transition-colors group"
+                  >
+                    <td className="px-4 py-3">
+                      <StatusBadge status={renewal.status} />
+                    </td>
+                    <td className="px-4 py-3 max-w-xs xl:max-w-md truncate">
+                      <div className="flex items-center gap-2">
+                        <span className="font-mono font-bold text-violet-400">{renewal.id}</span>
+                        <span className="text-content-primary font-medium group-hover:text-violet-300 transition-colors">{renewal.title}</span>
+                      </div>
+                      <div className="text-[10px] text-content-muted mt-0.5 truncate capitalize">
+                        {renewal.type.replace('_', ' ')}
+                      </div>
+                    </td>
+                    <td className="px-4 py-3 font-medium text-content-primary">{renewal.vendor}</td>
+                    <td className="px-4 py-3 font-mono text-emerald-400 font-medium">
+                      <div className="flex items-center gap-1">
+                        <DollarSign className="w-3 h-3 text-content-muted" /> {renewal.cost}
+                      </div>
+                    </td>
+                    <td className="px-4 py-3 capitalize text-[11px]">{renewal.frequency}</td>
+                    <td className="px-4 py-3">
+                      <AssigneeAvatar name={renewal.responsibleName} />
+                    </td>
+                    <td className="px-4 py-3">
+                      <DueDateIndicator date={renewal.renewalDate} />
+                    </td>
+                  </tr>
+                ))
+              )}
+            </tbody>
+          </table>
+        </div>
       </div>
     </div>
   );

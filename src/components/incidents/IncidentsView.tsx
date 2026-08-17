@@ -1,100 +1,132 @@
 import React, { useState } from 'react';
 import {
   LifeBuoy,
-  Plus,
   Search,
-  AlertTriangle,
-  Clock,
-  ShieldAlert,
-  CheckCircle2,
   ChevronRight
 } from 'lucide-react';
 import { useApp } from '../../context/AppContext';
 import { IncidentDetailModal } from './IncidentDetailModal';
+import { EntityPageHeader } from '../shared/EntityPageHeader';
+import { StatusBadge } from '../shared/StatusBadge';
+import { PriorityIndicator } from '../shared/PriorityIndicator';
+import { DueDateIndicator } from '../shared/DueDateIndicator';
+import { AssigneeAvatar } from '../shared/AssigneeAvatar';
+import { formatDate } from '../../utils/dateUtils';
 
 export const IncidentsView: React.FC = () => {
-  const { incidents, openQuickCreate, setSelectedIncident, isDarkTheme } = useApp();
+  const { incidents, openQuickCreate, setSelectedIncident } = useApp();
   const [searchQuery, setSearchQuery] = useState('');
+  const [selectedStatus, setSelectedStatus] = useState<string>('activas');
 
-  const filteredIncidents = incidents.filter((i) => i.title.toLowerCase().includes(searchQuery.toLowerCase()) || i.id.toLowerCase().includes(searchQuery.toLowerCase()));
+  const filteredIncidents = incidents.filter((incident) => {
+    const matchesSearch = incident.title.toLowerCase().includes(searchQuery.toLowerCase()) || 
+                          incident.id.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                          incident.requester.toLowerCase().includes(searchQuery.toLowerCase());
+    
+    let matchesStatus = true;
+    if (selectedStatus === 'activas') {
+      matchesStatus = incident.status !== 'resuelta' && incident.status !== 'cerrada' && incident.status !== 'cancelada';
+    } else if (selectedStatus === 'cerradas') {
+      matchesStatus = incident.status === 'resuelta' || incident.status === 'cerrada' || incident.status === 'cancelada';
+    }
+
+    return matchesSearch && matchesStatus;
+  });
 
   return (
     <div className="space-y-6 pb-12 animate-in fade-in duration-300">
       <IncidentDetailModal />
 
-      {/* Header */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-4 border-b border-slate-800">
-        <div>
-          <h1 className="text-2xl font-bold text-white flex items-center gap-2">
-            <LifeBuoy className="w-6 h-6 text-amber-400" /> Helpdesk & Incidencias Técnicas
-          </h1>
-          <p className="text-xs text-slate-400 mt-1">
-            Registro, diagnóstico y resolución de fallas de infraestructura, red, equipos y aplicaciones.
-          </p>
-        </div>
+      <EntityPageHeader 
+        icon={<LifeBuoy className="w-5 h-5" />}
+        title="Helpdesk & Incidencias Técnicas"
+        description="Registro, diagnóstico y resolución de fallas de infraestructura, red, equipos y aplicaciones."
+        actionLabel="Nueva Incidencia"
+        onAction={() => openQuickCreate('incident')}
+      />
 
-        <button
-          onClick={() => openQuickCreate('incident')}
-          className="flex items-center gap-2 px-4 py-2.5 rounded-xl font-bold text-xs bg-gradient-to-r from-amber-500 to-orange-600 hover:from-amber-400 hover:to-orange-500 text-slate-950 shadow-lg shadow-amber-500/20 transition-all self-start md:self-auto"
-        >
-          <Plus className="w-4 h-4" /> Registrar Incidencia
-        </button>
-      </div>
-
-      {/* Search */}
-      <div className={`p-4 rounded-2xl border ${isDarkTheme ? 'bg-slate-900/80 border-slate-800' : 'bg-white border-slate-200'}`}>
-        <div className="relative max-w-sm">
-          <Search className="w-4 h-4 text-slate-500 absolute left-3 top-2.5" />
+      {/* Filter Bar */}
+      <div className="p-3 lg:p-4 rounded-xl border border-border-subtle bg-surface flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div className="relative flex-1 max-w-sm">
+          <Search className="w-3.5 h-3.5 text-content-muted absolute left-3 top-2" />
           <input
             type="text"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             placeholder="Buscar por código, título o solicitante..."
-            className="w-full pl-9 pr-3 py-1.5 rounded-xl bg-slate-950 border border-slate-800 text-xs text-slate-200 placeholder-slate-500 focus:outline-none focus:border-amber-500"
+            className="w-full pl-8 pr-3 py-1.5 rounded-lg bg-surface-raised border border-border-subtle text-xs text-content-primary placeholder-content-muted focus:outline-none focus:border-amber-500/50"
           />
+        </div>
+
+        <div className="flex items-center gap-3 text-xs">
+          <select
+            value={selectedStatus}
+            onChange={(e) => setSelectedStatus(e.target.value)}
+            className="px-2 py-1.5 rounded-lg bg-surface-raised border border-border-subtle text-content-primary focus:outline-none focus:border-amber-500/50"
+          >
+            <option value="activas">Solo Activas</option>
+            <option value="cerradas">Solo Cerradas</option>
+            <option value="todas">Todas</option>
+          </select>
         </div>
       </div>
 
-      {/* Incidents List */}
-      <div className="space-y-3">
-        {filteredIncidents.map((incident) => (
-          <div
-            key={incident.id}
-            onClick={() => setSelectedIncident(incident)}
-            className={`p-4 rounded-2xl border transition-all cursor-pointer hover:border-amber-500/50 ${
-              isDarkTheme ? 'bg-slate-900/80 border-slate-800' : 'bg-white border-slate-200'
-            }`}
-          >
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-2">
-              <div className="flex items-center gap-2.5 flex-wrap">
-                <span className="font-mono text-xs font-bold text-amber-400 bg-amber-500/10 px-2.5 py-0.5 rounded border border-amber-500/20">
-                  {incident.id}
-                </span>
-                <span className={`text-[10px] px-2 py-0.5 rounded font-semibold uppercase font-mono ${
-                  incident.priority === 'critica' ? 'bg-rose-500/20 text-rose-400 border border-rose-500/30' : 'bg-amber-500/20 text-amber-400'
-                }`}>
-                  {incident.priority}
-                </span>
-                <span className="text-[10px] px-2 py-0.5 rounded bg-slate-800 text-slate-300 font-mono capitalize">
-                  {incident.category}
-                </span>
-              </div>
-
-              <span className="text-xs text-slate-400 font-mono flex items-center gap-1">
-                <Clock className="w-3.5 h-3.5 text-amber-400" /> SLA: {incident.slaDueDate}
-              </span>
-            </div>
-
-            <h3 className="text-base font-bold text-slate-100 mb-1.5">{incident.title}</h3>
-
-            <div className="flex flex-wrap items-center justify-between text-xs text-slate-400 pt-2 border-t border-slate-800/60">
-              <span>Solicitado por: <strong className="text-slate-200">{incident.requester}</strong></span>
-              <span className="text-amber-400 font-semibold flex items-center gap-1">
-                Atender <ChevronRight className="w-3.5 h-3.5" />
-              </span>
-            </div>
-          </div>
-        ))}
+      {/* TABLE VIEW */}
+      <div className="rounded-xl border border-border-subtle overflow-hidden bg-surface shadow-sm">
+        <div className="overflow-x-auto custom-scrollbar">
+          <table className="w-full text-left text-xs whitespace-nowrap">
+            <thead className="bg-surface-raised text-content-muted font-mono text-[10px] uppercase border-b border-border-subtle">
+              <tr>
+                <th className="px-4 py-3 font-semibold">Prioridad</th>
+                <th className="px-4 py-3 font-semibold">ID / Incidencia</th>
+                <th className="px-4 py-3 font-semibold">Estado</th>
+                <th className="px-4 py-3 font-semibold">Área / Categoría</th>
+                <th className="px-4 py-3 font-semibold">Responsable</th>
+                <th className="px-4 py-3 font-semibold">Abierta Desde</th>
+                <th className="px-4 py-3 font-semibold">Vence SLA</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-border-subtle text-content-secondary">
+              {filteredIncidents.length === 0 ? (
+                <tr><td colSpan={7} className="text-center py-10">No hay resultados</td></tr>
+              ) : (
+                filteredIncidents.map((incident) => (
+                  <tr
+                    key={incident.id}
+                    onClick={() => setSelectedIncident(incident)}
+                    className="hover:bg-surface-hover cursor-pointer transition-colors group"
+                  >
+                    <td className="px-4 py-3">
+                      <PriorityIndicator priority={incident.priority} />
+                    </td>
+                    <td className="px-4 py-3 max-w-xs xl:max-w-md truncate">
+                      <div className="flex items-center gap-2">
+                        <span className="font-mono font-bold text-amber-400">{incident.id}</span>
+                        <span className="text-content-primary font-medium group-hover:text-amber-300 transition-colors">{incident.title}</span>
+                      </div>
+                      <div className="text-[10px] text-content-muted mt-0.5 truncate">
+                        Solicitante: {incident.requester}
+                      </div>
+                    </td>
+                    <td className="px-4 py-3">
+                      <StatusBadge status={incident.status} />
+                    </td>
+                    <td className="px-4 py-3 capitalize text-[11px]">{incident.category}</td>
+                    <td className="px-4 py-3">
+                      <AssigneeAvatar name={incident.assigneeName} />
+                    </td>
+                    <td className="px-4 py-3 font-mono text-[11px]">
+                      {formatDate(incident.createdAt)}
+                    </td>
+                    <td className="px-4 py-3">
+                      <DueDateIndicator date={incident.slaDueDate} type="sla" />
+                    </td>
+                  </tr>
+                ))
+              )}
+            </tbody>
+          </table>
+        </div>
       </div>
     </div>
   );

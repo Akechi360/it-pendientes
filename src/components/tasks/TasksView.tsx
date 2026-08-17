@@ -3,329 +3,246 @@ import {
   CheckSquare,
   List,
   Kanban,
-  Calendar as CalendarIcon,
   Table as TableIcon,
-  Plus,
   Search,
-  Filter,
-  Clock,
-  AlertTriangle,
   Lock,
-  Star,
-  CheckCircle2,
-  ChevronRight,
-  User,
-  Tag
+  ChevronRight
 } from 'lucide-react';
 import { useApp } from '../../context/AppContext';
-import { TaskItem, TaskStatus, PriorityLevel } from '../../types';
 import { TaskDetailModal } from './TaskDetailModal';
+import { EntityPageHeader } from '../shared/EntityPageHeader';
+import { StatusBadge } from '../shared/StatusBadge';
+import { PriorityIndicator } from '../shared/PriorityIndicator';
+import { DueDateIndicator } from '../shared/DueDateIndicator';
+import { AssigneeAvatar } from '../shared/AssigneeAvatar';
 
 export const TasksView: React.FC = () => {
-  const { tasks, openQuickCreate, setSelectedTask, isDarkTheme } = useApp();
+  const { tasks, openQuickCreate, setSelectedTask } = useApp();
 
-  const [viewMode, setViewMode] = useState<'lista' | 'kanban' | 'tabla' | 'hoy' | 'vencidas' | 'mis_tareas'>('lista');
+  const [viewMode, setViewMode] = useState<'lista' | 'kanban' | 'tabla'>('tabla');
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedPriority, setSelectedPriority] = useState<string>('todas');
   const [selectedCategory, setSelectedCategory] = useState<string>('todas');
-
-  const todayStr = new Date().toISOString().split('T')[0];
+  const [showCompleted, setShowCompleted] = useState<boolean>(false);
 
   // Filter Tasks
   const filteredTasks = tasks.filter((task) => {
     const matchesSearch = task.title.toLowerCase().includes(searchQuery.toLowerCase()) || task.id.toLowerCase().includes(searchQuery.toLowerCase());
     const matchesPriority = selectedPriority === 'todas' || task.priority === selectedPriority;
     const matchesCategory = selectedCategory === 'todas' || task.category === selectedCategory;
+    const matchesStatus = showCompleted ? true : (task.status !== 'completada' && task.status !== 'cancelada');
 
-    if (!matchesSearch || !matchesPriority || !matchesCategory) return false;
-
-    if (viewMode === 'hoy') return task.dueDate === todayStr;
-    if (viewMode === 'vencidas') return task.dueDate < todayStr && task.status !== 'completada' && task.status !== 'cancelada';
-
-    return true;
+    return matchesSearch && matchesPriority && matchesCategory && matchesStatus;
   });
-
-  const kanbanColumns: { id: TaskStatus; label: string; color: string }[] = [
-    { id: 'pendiente', label: 'Pendiente', color: 'border-blue-500' },
-    { id: 'en_progreso', label: 'En Progreso', color: 'border-cyan-500' },
-    { id: 'bloqueada', label: 'Bloqueada', color: 'border-amber-500' },
-    { id: 'en_revision', label: 'En Revisión', color: 'border-purple-500' },
-    { id: 'completada', label: 'Completada', color: 'border-emerald-500' }
-  ];
 
   return (
     <div className="space-y-6 pb-12 animate-in fade-in duration-300">
       <TaskDetailModal />
 
-      {/* Header Bar */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-4 border-b border-slate-800">
-        <div>
-          <h1 className="text-2xl font-bold text-white flex items-center gap-2">
-            <CheckSquare className="w-6 h-6 text-cyan-400" /> Tareas & Pendientes
-          </h1>
-          <p className="text-xs text-slate-400 mt-1">
-            Gestión completa de actividades diarias, semanales, recurrentes y focales del departamento.
-          </p>
-        </div>
+      <EntityPageHeader 
+        icon={<CheckSquare className="w-5 h-5" />}
+        title="Tareas & Pendientes"
+        description="Gestión completa de actividades diarias, semanales, recurrentes y focales del departamento."
+        actionLabel="Nueva Tarea"
+        onAction={() => openQuickCreate('task')}
+      />
 
-        <button
-          onClick={() => openQuickCreate('task')}
-          className="flex items-center gap-2 px-4 py-2.5 rounded-xl font-bold text-xs bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-slate-950 shadow-lg shadow-cyan-500/20 transition-all self-start md:self-auto"
-        >
-          <Plus className="w-4 h-4" /> Crear Nueva Tarea
-        </button>
-      </div>
-
-      {/* Filter and View Toggles Bar */}
-      <div className={`p-4 rounded-2xl border space-y-3 ${
-        isDarkTheme ? 'bg-slate-900/80 border-slate-800' : 'bg-white border-slate-200'
-      }`}>
-        <div className="flex flex-wrap items-center justify-between gap-3">
-          {/* View Modes Selector */}
-          <div className="flex flex-wrap gap-1 bg-slate-950/60 p-1 rounded-xl border border-slate-800">
+      {/* Filter Bar */}
+      <div className="p-3 lg:p-4 rounded-xl border border-border-subtle bg-surface flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div className="flex flex-col sm:flex-row gap-3">
+          {/* View Toggles */}
+          <div className="flex items-center p-1 rounded-lg bg-surface-raised border border-border-subtle">
             <button
-              onClick={() => setViewMode('lista')}
-              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${
-                viewMode === 'lista' ? 'bg-cyan-500 text-slate-950 font-bold' : 'text-slate-400 hover:text-white'
-              }`}
+              onClick={() => setViewMode('tabla')}
+              className={`p-1.5 rounded-md transition-colors ${viewMode === 'tabla' ? 'bg-surface text-cyan-400 shadow-sm border border-border-subtle' : 'text-content-muted hover:text-content-primary'}`}
+              title="Vista de Tabla"
             >
-              <List className="w-3.5 h-3.5" /> Lista
+              <TableIcon className="w-4 h-4" />
             </button>
             <button
               onClick={() => setViewMode('kanban')}
-              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${
-                viewMode === 'kanban' ? 'bg-cyan-500 text-slate-950 font-bold' : 'text-slate-400 hover:text-white'
-              }`}
+              className={`p-1.5 rounded-md transition-colors ${viewMode === 'kanban' ? 'bg-surface text-cyan-400 shadow-sm border border-border-subtle' : 'text-content-muted hover:text-content-primary'}`}
+              title="Vista Kanban"
             >
-              <Kanban className="w-3.5 h-3.5" /> Kanban
+              <Kanban className="w-4 h-4" />
             </button>
             <button
-              onClick={() => setViewMode('tabla')}
-              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${
-                viewMode === 'tabla' ? 'bg-cyan-500 text-slate-950 font-bold' : 'text-slate-400 hover:text-white'
-              }`}
+              onClick={() => setViewMode('lista')}
+              className={`p-1.5 rounded-md transition-colors ${viewMode === 'lista' ? 'bg-surface text-cyan-400 shadow-sm border border-border-subtle' : 'text-content-muted hover:text-content-primary'}`}
+              title="Vista Lista"
             >
-              <TableIcon className="w-3.5 h-3.5" /> Tabla
-            </button>
-            <button
-              onClick={() => setViewMode('hoy')}
-              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${
-                viewMode === 'hoy' ? 'bg-cyan-500 text-slate-950 font-bold' : 'text-slate-400 hover:text-white'
-              }`}
-            >
-              <Clock className="w-3.5 h-3.5" /> Hoy
-            </button>
-            <button
-              onClick={() => setViewMode('vencidas')}
-              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${
-                viewMode === 'vencidas' ? 'bg-rose-500 text-white font-bold' : 'text-rose-400 hover:text-rose-300'
-              }`}
-            >
-              <AlertTriangle className="w-3.5 h-3.5" /> Vencidas
+              <List className="w-4 h-4" />
             </button>
           </div>
 
-          {/* Search Box */}
-          <div className="relative flex-1 max-w-xs">
-            <Search className="w-4 h-4 text-slate-500 absolute left-3 top-2.5" />
+          <div className="h-8 w-px bg-border-subtle hidden sm:block"></div>
+
+          <div className="relative">
+            <Search className="w-3.5 h-3.5 text-content-muted absolute left-3 top-2" />
             <input
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Filtrar por título o ID..."
-              className="w-full pl-9 pr-3 py-1.5 rounded-xl bg-slate-950 border border-slate-800 text-xs text-slate-200 placeholder-slate-500 focus:outline-none focus:border-cyan-500"
+              placeholder="Buscar ID o título..."
+              className="w-full sm:w-64 pl-8 pr-3 py-1.5 rounded-lg bg-surface-raised border border-border-subtle text-xs text-content-primary placeholder-content-muted focus:outline-none focus:border-cyan-500/50"
             />
           </div>
         </div>
 
-        {/* Priority & Category Selectors */}
-        <div className="flex flex-wrap items-center gap-4 text-xs pt-2 border-t border-slate-800/60">
-          <div className="flex items-center gap-2">
-            <span className="text-slate-400 font-medium">Prioridad:</span>
-            <select
-              value={selectedPriority}
-              onChange={(e) => setSelectedPriority(e.target.value)}
-              className="px-2.5 py-1 rounded-lg bg-slate-950 border border-slate-800 text-slate-200"
-            >
-              <option value="todas">Todas</option>
-              <option value="critica">Crítica</option>
-              <option value="alta">Alta</option>
-              <option value="media">Media</option>
-              <option value="baja">Baja</option>
-            </select>
-          </div>
+        <div className="flex flex-wrap items-center gap-3 text-xs">
+          <label className="flex items-center gap-2 cursor-pointer text-content-secondary hover:text-content-primary">
+            <input type="checkbox" checked={showCompleted} onChange={() => setShowCompleted(!showCompleted)} className="accent-cyan-500 rounded bg-surface border-border-subtle" />
+            Mostrar Completadas
+          </label>
+          <select
+            value={selectedPriority}
+            onChange={(e) => setSelectedPriority(e.target.value)}
+            className="px-2 py-1.5 rounded-lg bg-surface-raised border border-border-subtle text-content-primary focus:outline-none focus:border-cyan-500/50"
+          >
+            <option value="todas">Todas Prioridades</option>
+            <option value="critica">Crítica</option>
+            <option value="alta">Alta</option>
+            <option value="media">Media</option>
+            <option value="baja">Baja</option>
+          </select>
 
-          <div className="flex items-center gap-2">
-            <span className="text-slate-400 font-medium">Categoría:</span>
-            <select
-              value={selectedCategory}
-              onChange={(e) => setSelectedCategory(e.target.value)}
-              className="px-2.5 py-1 rounded-lg bg-slate-950 border border-slate-800 text-slate-200 capitalize"
-            >
-              <option value="todas">Todas</option>
-              <option value="soporte">Soporte</option>
-              <option value="infraestructura">Infraestructura</option>
-              <option value="redes">Redes</option>
-              <option value="desarrollo">Desarrollo</option>
-              <option value="seguridad">Seguridad</option>
-              <option value="base_de_datos">Base de Datos</option>
-            </select>
-          </div>
+          <select
+            value={selectedCategory}
+            onChange={(e) => setSelectedCategory(e.target.value)}
+            className="px-2 py-1.5 rounded-lg bg-surface-raised border border-border-subtle text-content-primary capitalize focus:outline-none focus:border-cyan-500/50"
+          >
+            <option value="todas">Todas Categorías</option>
+            <option value="soporte">Soporte</option>
+            <option value="infraestructura">Infraestructura</option>
+            <option value="redes">Redes</option>
+            <option value="desarrollo">Desarrollo</option>
+            <option value="seguridad">Seguridad</option>
+            <option value="base_de_datos">Base de Datos</option>
+          </select>
         </div>
       </div>
 
-      {/* VIEW: LIST MODE */}
-      {viewMode === 'lista' || viewMode === 'hoy' || viewMode === 'vencidas' ? (
-        <div className="space-y-3">
-          {filteredTasks.length === 0 ? (
-            <div className="text-center py-12 border border-dashed border-slate-800 rounded-2xl">
-              <p className="text-sm text-slate-500">No se encontraron tareas con los filtros seleccionados.</p>
-            </div>
-          ) : (
-            filteredTasks.map((task) => (
-              <div
-                key={task.id}
-                onClick={() => setSelectedTask(task)}
-                className={`p-4 rounded-2xl border transition-all cursor-pointer hover:border-cyan-500/50 ${
-                  isDarkTheme ? 'bg-slate-900/80 border-slate-800' : 'bg-white border-slate-200'
-                }`}
-              >
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-2">
-                  <div className="flex items-center gap-2.5 flex-wrap">
-                    <span className="font-mono text-xs font-bold text-cyan-400 bg-cyan-500/10 px-2 py-0.5 rounded border border-cyan-500/20">
-                      {task.id}
-                    </span>
-                    <span className={`text-[10px] px-2 py-0.5 rounded font-semibold uppercase font-mono ${
-                      task.priority === 'critica' ? 'bg-rose-500/20 text-rose-400 border border-rose-500/30' :
-                      task.priority === 'alta' ? 'bg-amber-500/20 text-amber-400 border border-amber-500/30' :
-                      'bg-blue-500/20 text-blue-400'
-                    }`}>
-                      {task.priority}
-                    </span>
-                    <span className="text-[10px] px-2 py-0.5 rounded bg-slate-800 text-slate-300 capitalize font-mono">
-                      {task.category}
-                    </span>
-                    {task.isBlocked && (
-                      <span className="text-[10px] px-2 py-0.5 rounded bg-rose-500/20 text-rose-400 border border-rose-500/30 flex items-center gap-1 font-mono">
-                        <Lock className="w-3 h-3" /> Bloqueada
-                      </span>
-                    )}
-                  </div>
-
-                  <span className="text-xs text-slate-400 font-mono flex items-center gap-1">
-                    <Clock className="w-3.5 h-3.5 text-cyan-400" /> Vence: {task.dueDate}
-                  </span>
-                </div>
-
-                <h3 className="text-base font-bold text-slate-100 mb-1.5">{task.title}</h3>
-
-                <div className="flex flex-wrap items-center justify-between text-xs text-slate-400 pt-2 border-t border-slate-800/60">
-                  <span className="flex items-center gap-1">
-                    <User className="w-3.5 h-3.5 text-slate-500" /> Assignee: <strong className="text-slate-200">{task.assigneeName}</strong>
-                  </span>
-                  <div className="flex items-center gap-3">
-                    <span className="font-mono text-[11px] text-slate-400">
-                      Subtareas: {task.checklist?.filter((c) => c.completed).length || 0}/{task.checklist?.length || 0}
-                    </span>
-                    <span className="text-cyan-400 font-semibold flex items-center gap-1">
-                      Detalles <ChevronRight className="w-3.5 h-3.5" />
-                    </span>
-                  </div>
-                </div>
-              </div>
-            ))
-          )}
+      {/* TABLE VIEW */}
+      {viewMode === 'tabla' && (
+        <div className="rounded-xl border border-border-subtle overflow-hidden bg-surface shadow-sm">
+          <div className="overflow-x-auto custom-scrollbar">
+            <table className="w-full text-left text-xs whitespace-nowrap">
+              <thead className="bg-surface-raised text-content-muted font-mono text-[10px] uppercase border-b border-border-subtle">
+                <tr>
+                  <th className="px-4 py-3 font-semibold">Prioridad</th>
+                  <th className="px-4 py-3 font-semibold">ID / Título</th>
+                  <th className="px-4 py-3 font-semibold">Estado</th>
+                  <th className="px-4 py-3 font-semibold">Responsable</th>
+                  <th className="px-4 py-3 font-semibold">Categoría</th>
+                  <th className="px-4 py-3 font-semibold">Vencimiento</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-border-subtle text-content-secondary">
+                {filteredTasks.length === 0 ? (
+                  <tr><td colSpan={6} className="text-center py-10">No hay resultados</td></tr>
+                ) : (
+                  filteredTasks.map((task) => (
+                    <tr
+                      key={task.id}
+                      onClick={() => setSelectedTask(task)}
+                      className="hover:bg-surface-hover cursor-pointer transition-colors group"
+                    >
+                      <td className="px-4 py-3">
+                        <PriorityIndicator priority={task.priority} />
+                      </td>
+                      <td className="px-4 py-3 max-w-xs xl:max-w-md truncate">
+                        <div className="flex items-center gap-2">
+                          <span className="font-mono font-bold text-cyan-400">{task.id}</span>
+                          <span className="text-content-primary font-medium group-hover:text-cyan-300 transition-colors">{task.title}</span>
+                          {task.isBlocked && <Lock className="w-3 h-3 text-rose-400 shrink-0" title="Bloqueada" />}
+                        </div>
+                      </td>
+                      <td className="px-4 py-3">
+                        <StatusBadge status={task.status} />
+                      </td>
+                      <td className="px-4 py-3">
+                        <AssigneeAvatar name={task.assigneeName} />
+                      </td>
+                      <td className="px-4 py-3 capitalize text-[11px]">{task.category}</td>
+                      <td className="px-4 py-3">
+                        <DueDateIndicator date={task.dueDate} />
+                      </td>
+                    </tr>
+                  ))
+                )}
+              </tbody>
+            </table>
+          </div>
         </div>
-      ) : null}
+      )}
 
-      {/* VIEW: KANBAN BOARD */}
+      {/* KANBAN VIEW (Compact refactor) */}
       {viewMode === 'kanban' && (
-        <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-4 overflow-x-auto pb-4">
-          {kanbanColumns.map((col) => {
-            const colTasks = filteredTasks.filter((t) => t.status === col.id);
+        <div className="flex gap-4 overflow-x-auto pb-4 custom-scrollbar snap-x">
+          {['pendiente', 'en_progreso', 'bloqueada', 'en_revision', 'completada'].map((statusId) => {
+            const colTasks = filteredTasks.filter((t) => t.status === statusId);
             return (
-              <div key={col.id} className="p-3 rounded-2xl bg-slate-900/60 border border-slate-800 flex flex-col h-full min-w-[240px]">
-                <div className={`flex items-center justify-between pb-2 mb-3 border-b-2 ${col.color}`}>
-                  <h3 className="font-semibold text-xs text-slate-200 uppercase tracking-wider font-mono">{col.label}</h3>
-                  <span className="text-xs font-mono px-2 py-0.5 rounded bg-slate-800 text-slate-400">{colTasks.length}</span>
+              <div key={statusId} className="w-72 shrink-0 snap-start bg-canvas rounded-xl border border-border-subtle flex flex-col h-[calc(100vh-280px)]">
+                <div className="p-3 border-b border-border-subtle bg-surface rounded-t-xl flex items-center justify-between">
+                  <h3 className="font-semibold text-xs text-content-primary uppercase tracking-wider">{statusId.replace('_', ' ')}</h3>
+                  <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-surface-raised text-content-muted border border-border-subtle">{colTasks.length}</span>
                 </div>
-
-                <div className="space-y-3 flex-1 overflow-y-auto max-h-[600px] custom-scrollbar">
-                  {colTasks.length === 0 ? (
-                    <p className="text-[11px] text-slate-500 text-center py-6">Sin tareas</p>
-                  ) : (
-                    colTasks.map((task) => (
-                      <div
-                        key={task.id}
-                        onClick={() => setSelectedTask(task)}
-                        className="p-3 rounded-xl bg-slate-950 border border-slate-800/80 hover:border-cyan-500/40 cursor-pointer transition-all shadow-sm space-y-2"
-                      >
-                        <div className="flex items-center justify-between">
-                          <span className="font-mono text-[10px] font-bold text-cyan-400">{task.id}</span>
-                          <span className={`text-[9px] px-1.5 py-0.5 rounded font-semibold uppercase font-mono ${
-                            task.priority === 'critica' ? 'bg-rose-500/20 text-rose-400' : 'bg-blue-500/20 text-blue-400'
-                          }`}>
-                            {task.priority}
-                          </span>
-                        </div>
-                        <h4 className="text-xs font-semibold text-slate-200 leading-snug line-clamp-2">{task.title}</h4>
-                        <div className="flex items-center justify-between text-[10px] text-slate-400 pt-1 border-t border-slate-800">
-                          <span>{task.assigneeName.split(' ')[0]}</span>
-                          <span className="font-mono">{task.dueDate}</span>
-                        </div>
+                <div className="flex-1 p-2 space-y-2 overflow-y-auto custom-scrollbar">
+                  {colTasks.map(task => (
+                    <div 
+                      key={task.id}
+                      onClick={() => setSelectedTask(task)}
+                      className="p-3 rounded-lg bg-surface border border-border-subtle hover:border-cyan-500/40 cursor-pointer shadow-sm group"
+                    >
+                      <div className="flex items-center justify-between mb-2">
+                        <PriorityIndicator priority={task.priority} />
+                        {task.isBlocked && <Lock className="w-3 h-3 text-rose-400 shrink-0" />}
                       </div>
-                    ))
-                  )}
+                      <p className="text-xs font-semibold text-content-primary leading-tight mb-2 line-clamp-2 group-hover:text-cyan-300 transition-colors">{task.title}</p>
+                      <div className="flex items-center justify-between pt-2 border-t border-border-subtle mt-2">
+                        <AssigneeAvatar name={task.assigneeName} />
+                        <span className="text-[10px] font-mono font-bold text-cyan-400">{task.id}</span>
+                      </div>
+                    </div>
+                  ))}
                 </div>
               </div>
-            );
+            )
           })}
         </div>
       )}
 
-      {/* VIEW: TABLE MODE */}
-      {viewMode === 'tabla' && (
-        <div className="rounded-2xl border border-slate-800 overflow-hidden bg-slate-900/80">
-          <table className="w-full text-left text-xs text-slate-300">
-            <thead className="bg-slate-950 text-slate-400 font-mono text-[11px] uppercase border-b border-slate-800">
-              <tr>
-                <th className="p-3">ID</th>
-                <th className="p-3">Título</th>
-                <th className="p-3">Estado</th>
-                <th className="p-3">Prioridad</th>
-                <th className="p-3">Responsable</th>
-                <th className="p-3">Categoría</th>
-                <th className="p-3">Fecha Límite</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-slate-800/60">
-              {filteredTasks.map((task) => (
-                <tr
-                  key={task.id}
-                  onClick={() => setSelectedTask(task)}
-                  className="hover:bg-slate-800/50 cursor-pointer transition-colors"
-                >
-                  <td className="p-3 font-mono font-bold text-cyan-400">{task.id}</td>
-                  <td className="p-3 font-semibold text-slate-100">{task.title}</td>
-                  <td className="p-3">
-                    <span className="px-2 py-0.5 rounded bg-slate-800 text-slate-300 font-mono text-[10px]">
-                      {task.status.replace('_', ' ')}
-                    </span>
-                  </td>
-                  <td className="p-3">
-                    <span className={`px-2 py-0.5 rounded text-[10px] font-bold font-mono ${
-                      task.priority === 'critica' ? 'text-rose-400' : 'text-blue-400'
-                    }`}>
-                      {task.priority}
-                    </span>
-                  </td>
-                  <td className="p-3">{task.assigneeName}</td>
-                  <td className="p-3 capitalize">{task.category}</td>
-                  <td className="p-3 font-mono">{task.dueDate}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+      {/* LIST VIEW (Detailed) */}
+      {viewMode === 'lista' && (
+        <div className="space-y-2">
+          {filteredTasks.length === 0 ? (
+             <div className="text-center py-10 rounded-xl border border-dashed border-border-subtle bg-surface">No hay resultados</div>
+          ) : (
+            filteredTasks.map(task => (
+              <div 
+                key={task.id}
+                onClick={() => setSelectedTask(task)}
+                className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-4 rounded-xl bg-surface border border-border-subtle hover:bg-surface-hover cursor-pointer transition-colors group"
+              >
+                <div className="flex-1">
+                  <div className="flex flex-wrap items-center gap-2 mb-1">
+                    <span className="font-mono text-xs font-bold text-cyan-400">{task.id}</span>
+                    <PriorityIndicator priority={task.priority} />
+                    <StatusBadge status={task.status} />
+                    {task.isBlocked && <span className="text-[10px] text-rose-400 flex items-center gap-1 font-semibold uppercase"><Lock className="w-3 h-3"/> Bloqueada</span>}
+                  </div>
+                  <h3 className="text-sm font-semibold text-content-primary group-hover:text-cyan-300 transition-colors">{task.title}</h3>
+                </div>
+                <div className="flex items-center sm:justify-end gap-6 shrink-0 border-t sm:border-t-0 border-border-subtle pt-3 sm:pt-0">
+                  <AssigneeAvatar name={task.assigneeName} />
+                  <div className="w-32 text-right">
+                    <DueDateIndicator date={task.dueDate} />
+                  </div>
+                  <ChevronRight className="w-4 h-4 text-content-muted hidden sm:block group-hover:text-cyan-400" />
+                </div>
+              </div>
+            ))
+          )}
         </div>
       )}
     </div>

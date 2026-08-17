@@ -10,9 +10,10 @@ import {
   Plus
 } from 'lucide-react';
 import { useApp } from '../../context/AppContext';
+import { EntityPageHeader } from '../shared/EntityPageHeader';
 
 export const CalendarView: React.FC = () => {
-  const { tasks, meetings, renewals, openQuickCreate, setSelectedTask, isDarkTheme } = useApp();
+  const { tasks, meetings, renewals, openQuickCreate, setSelectedTask } = useApp();
   const [currentDate, setCurrentDate] = useState(new Date());
 
   const year = currentDate.getFullYear();
@@ -39,42 +40,30 @@ export const CalendarView: React.FC = () => {
 
   return (
     <div className="space-y-6 pb-12 animate-in fade-in duration-300">
-      {/* Header */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-4 border-b border-slate-800">
-        <div>
-          <h1 className="text-2xl font-bold text-white flex items-center gap-2">
-            <CalendarIcon className="w-6 h-6 text-purple-400" /> Calendario Central de IT
-          </h1>
-          <p className="text-xs text-slate-400 mt-1">
-            Programación de vencimientos, reuniones, mantenimientos y ventanas de despliegue.
-          </p>
-        </div>
-
-        <button
-          onClick={() => openQuickCreate('meeting')}
-          className="flex items-center gap-2 px-4 py-2.5 rounded-xl font-bold text-xs bg-gradient-to-r from-purple-500 to-indigo-600 hover:from-purple-400 hover:to-indigo-500 text-white shadow-lg shadow-purple-500/20 transition-all self-start md:self-auto"
-        >
-          <Plus className="w-4 h-4" /> Programar Evento / Reunión
-        </button>
-      </div>
+      
+      <EntityPageHeader 
+        icon={<CalendarIcon className="w-5 h-5" />}
+        title="Calendario Central de IT"
+        description="Programación de vencimientos, reuniones, mantenimientos y ventanas de despliegue."
+        actionLabel="Programar Evento"
+        onAction={() => openQuickCreate('meeting')}
+      />
 
       {/* Month Navigator */}
-      <div className={`p-4 rounded-2xl border flex items-center justify-between ${
-        isDarkTheme ? 'bg-slate-900/80 border-slate-800' : 'bg-white border-slate-200'
-      }`}>
-        <h2 className="text-lg font-bold text-white font-mono">
+      <div className="p-3 lg:p-4 rounded-xl border border-border-subtle bg-surface flex items-center justify-between">
+        <h2 className="text-lg font-bold text-content-primary font-mono tracking-tight">
           {monthNames[month]} {year}
         </h2>
         <div className="flex gap-2">
           <button
             onClick={handlePrevMonth}
-            className="p-2 rounded-xl bg-slate-950 border border-slate-800 hover:bg-slate-800 text-slate-300"
+            className="p-2 rounded-lg bg-surface-raised border border-border-subtle hover:bg-surface-hover text-content-primary transition-colors"
           >
             <ChevronLeft className="w-4 h-4" />
           </button>
           <button
             onClick={handleNextMonth}
-            className="p-2 rounded-xl bg-slate-950 border border-slate-800 hover:bg-slate-800 text-slate-300"
+            className="p-2 rounded-lg bg-surface-raised border border-border-subtle hover:bg-surface-hover text-content-primary transition-colors"
           >
             <ChevronRight className="w-4 h-4" />
           </button>
@@ -82,9 +71,9 @@ export const CalendarView: React.FC = () => {
       </div>
 
       {/* Calendar Grid */}
-      <div className="rounded-2xl border border-slate-800 overflow-hidden bg-slate-900/80">
+      <div className="rounded-xl border border-border-subtle overflow-hidden bg-surface shadow-sm">
         {/* Days of week header */}
-        <div className="grid grid-cols-7 text-center font-mono text-xs font-bold text-slate-400 border-b border-slate-800 bg-slate-950 py-3">
+        <div className="grid grid-cols-7 text-center font-mono text-[10px] uppercase font-bold text-content-muted border-b border-border-subtle bg-surface-raised py-3">
           <span>Dom</span>
           <span>Lun</span>
           <span>Mar</span>
@@ -95,61 +84,68 @@ export const CalendarView: React.FC = () => {
         </div>
 
         {/* Days Grid */}
-        <div className="grid grid-cols-7 auto-rows-fr divide-x divide-y divide-slate-800/60 min-h-[500px]">
+        <div className="grid grid-cols-7 auto-rows-fr min-h-[600px]">
           {paddingDays.map((p) => (
-            <div key={`pad-${p}`} className="p-2 bg-slate-950/20 opacity-30 min-h-[90px]"></div>
+            <div key={`pad-${p}`} className="p-2 bg-canvas border-r border-b border-border-subtle opacity-50 min-h-[100px]"></div>
           ))}
 
-          {days.map((day) => {
+          {days.map((day, idx) => {
             const formattedDayStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
-            const dayTasks = tasks.filter((t) => t.dueDate === formattedDayStr);
+            const dayTasks = tasks.filter((t) => t.dueDate === formattedDayStr && t.status !== 'completada' && t.status !== 'cancelada');
             const dayMeetings = meetings.filter((m) => m.startTime.startsWith(formattedDayStr));
             const dayRenewals = renewals.filter((r) => r.renewalDate === formattedDayStr);
 
             const isToday = formattedDayStr === new Date().toISOString().split('T')[0];
 
+            // Fix border logic for last items in row/col
+            const isLastCol = (idx + firstDayIndex + 1) % 7 === 0;
+
             return (
               <div
                 key={day}
-                className={`p-2 min-h-[90px] flex flex-col justify-start transition-all hover:bg-slate-800/30 ${
-                  isToday ? 'bg-cyan-500/10 border-cyan-500/40' : ''
+                className={`p-2 min-h-[100px] flex flex-col justify-start transition-all hover:bg-surface-hover border-b border-border-subtle ${!isLastCol ? 'border-r' : ''} ${
+                  isToday ? 'bg-cyan-500/5' : 'bg-surface'
                 }`}
               >
-                <span className={`text-xs font-mono font-bold self-end mb-1 px-1.5 py-0.5 rounded ${
-                  isToday ? 'bg-cyan-500 text-slate-950' : 'text-slate-400'
+                <span className={`text-[11px] font-mono font-bold self-end mb-1.5 px-1.5 py-0.5 rounded-sm ${
+                  isToday ? 'bg-cyan-400 text-slate-950' : 'text-content-secondary'
                 }`}>
                   {day}
                 </span>
 
-                <div className="space-y-1 overflow-y-auto max-h-20 custom-scrollbar">
+                <div className="space-y-1 overflow-y-auto custom-scrollbar flex-1">
+                  {dayMeetings.map((m) => {
+                    const time = new Date(m.startTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+                    return (
+                      <div
+                        key={m.id}
+                        className="px-1.5 py-1 rounded bg-surface-raised border-l-2 border-l-violet-400 text-content-primary text-[10px] leading-tight cursor-pointer font-medium hover:bg-violet-500/10 transition-colors"
+                        title={m.title}
+                      >
+                        <span className="font-mono text-content-muted mr-1">{time}</span> 
+                        {m.title}
+                      </div>
+                    )
+                  })}
+
                   {dayTasks.map((t) => (
                     <div
                       key={t.id}
                       onClick={() => setSelectedTask(t)}
-                      className="px-1.5 py-0.5 rounded bg-blue-500/20 text-blue-300 border border-blue-500/30 text-[10px] truncate cursor-pointer font-medium"
+                      className="px-1.5 py-1 rounded bg-surface-raised border-l-2 border-l-blue-400 text-content-primary text-[10px] leading-tight cursor-pointer font-medium hover:bg-blue-500/10 transition-colors"
                       title={t.title}
                     >
-                      • {t.title}
-                    </div>
-                  ))}
-
-                  {dayMeetings.map((m) => (
-                    <div
-                      key={m.id}
-                      className="px-1.5 py-0.5 rounded bg-purple-500/20 text-purple-300 border border-purple-500/30 text-[10px] truncate cursor-pointer font-medium"
-                      title={m.title}
-                    >
-                      👥 {m.title}
+                      {t.title}
                     </div>
                   ))}
 
                   {dayRenewals.map((r) => (
                     <div
                       key={r.id}
-                      className="px-1.5 py-0.5 rounded bg-amber-500/20 text-amber-300 border border-amber-500/30 text-[10px] truncate cursor-pointer font-medium"
+                      className="px-1.5 py-1 rounded bg-surface-raised border-l-2 border-l-amber-400 text-content-primary text-[10px] leading-tight cursor-pointer font-medium hover:bg-amber-500/10 transition-colors"
                       title={r.title}
                     >
-                      ⚡ Renovación: {r.title}
+                      <span className="font-bold">Renovación:</span> {r.vendor}
                     </div>
                   ))}
                 </div>

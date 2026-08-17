@@ -1,1 +1,70 @@
 @import "tailwindcss";
+@custom-variant dark (&:where(.dark, .dark *));
+
+/* 
+ * IT Operations Command Center - Design Tokens (Tailwind v4)
+ * Mapeo de tokens semánticos a las utilidades de Tailwind (bg-canvas, text-content-primary, etc.)
+ */
+@theme {
+  --color-canvas: hsl(var(--canvas));
+  --color-surface: hsl(var(--surface));
+  --color-surface-raised: hsl(var(--surface-raised));
+  --color-surface-hover: hsl(var(--surface-hover));
+  
+  --color-content-primary: hsl(var(--content-primary));
+  --color-content-secondary: hsl(var(--content-secondary));
+  --color-content-muted: hsl(var(--content-muted));
+
+  --color-border-subtle: hsl(var(--border-subtle));
+  --color-border-active: hsl(var(--border-active));
+}
+
+@layer base {
+  :root {
+    --canvas: 220 38% 97%;
+    --surface: 0 0% 100%;
+    --surface-raised: 214 32% 94%;
+    --surface-hover: 214 32% 91%;
+
+    --content-primary: 222 47% 11%;
+    --content-secondary: 215 16% 35%;
+    --content-muted: 215 14% 50%;
+
+    --border-subtle: 214 20% 88%;
+    --border-active: 189 94% 43%;
+  }
+
+  .dark {
+    --canvas: 224 52% 7%;
+    --surface: 220 47% 10%;
+    --surface-raised: 218 47% 13%;
+    --surface-hover: 214 45% 17%;
+
+    --content-primary: 210 40% 96%;
+    --content-secondary: 215 20% 65%;
+    --content-muted: 215 16% 47%;
+
+    --border-subtle: 215 20% 20%;
+    --border-active: 189 94% 43%;
+  }
+
+  /* Reset global scrollbar style for premium feel */
+  .custom-scrollbar::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+  .custom-scrollbar::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  .custom-scrollbar::-webkit-scrollbar-thumb {
+    @apply bg-border-subtle rounded-full;
+  }
+  .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+    @apply bg-content-muted;
+  }
+}
+
+/* Aplicar fondo y texto global por defecto usando los tokens */
+body {
+  @apply bg-canvas text-content-primary antialiased;
+}

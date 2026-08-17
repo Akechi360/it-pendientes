@@ -23,17 +23,26 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     // Escuchar cambios en sesión de Supabase Auth
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
       if (session?.user) {
-        const profile = await getUserProfile(session.user.id);
-        if (profile) {
-          setCurrentUser(profile);
-          // Seed inicial de datos si las tablas están vacías
-          await checkAndSeedSupabase();
-        } else {
-          // Usuario autenticado pero sin perfil en la tabla users — cierra sesión
-          console.warn('[Auth] Usuario sin perfil en tabla users. Cerrando sesión.');
-          await supabase.auth.signOut();
-          setCurrentUser(null);
+        let profile = await getUserProfile(session.user.id);
+        if (!profile) {
+          console.log('[Auth] Creando perfil faltante para:', session.user.email);
+          const newProfile: UserProfile = {
+            uid: session.user.id,
+            email: session.user.email || '',
+            displayName: session.user.email?.split('@')[0] || 'Usuario IT',
+            role: 'admin',
+            title: 'Analista IT',
+            organizationId: 'org_sistemas_main'
+          };
+          // Import y utiliza upsertUserProfile
+          const { upsertUserProfile } = await import('../services/supabaseService');
+          await upsertUserProfile(newProfile);
+          profile = newProfile;
         }
+
+        setCurrentUser(profile);
+        // Seed inicial de datos si las tablas están vacías
+        await checkAndSeedSupabase();
       } else {
         setCurrentUser(null);
       }

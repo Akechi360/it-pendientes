@@ -1,20 +1,17 @@
 import React, { useState } from 'react';
 import {
   FolderKanban,
-  Plus,
   Search,
-  CheckSquare,
-  Users,
-  Clock,
-  TrendingUp,
-  AlertCircle
+  AlertTriangle
 } from 'lucide-react';
 import { useApp } from '../../context/AppContext';
-import { ProjectItem } from '../../types';
 import { ProjectDetailModal } from './ProjectDetailModal';
+import { EntityPageHeader } from '../shared/EntityPageHeader';
+import { StatusBadge } from '../shared/StatusBadge';
+import { AssigneeAvatar } from '../shared/AssigneeAvatar';
 
 export const ProjectsView: React.FC = () => {
-  const { projects, openQuickCreate, setSelectedProject, isDarkTheme } = useApp();
+  const { projects, openQuickCreate, setSelectedProject } = useApp();
   const [searchQuery, setSearchQuery] = useState('');
 
   const filteredProjects = projects.filter((p) => p.name.toLowerCase().includes(searchQuery.toLowerCase()) || p.id.toLowerCase().includes(searchQuery.toLowerCase()));
@@ -23,88 +20,101 @@ export const ProjectsView: React.FC = () => {
     <div className="space-y-6 pb-12 animate-in fade-in duration-300">
       <ProjectDetailModal />
 
-      {/* Header */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-4 border-b border-slate-800">
-        <div>
-          <h1 className="text-2xl font-bold text-white flex items-center gap-2">
-            <FolderKanban className="w-6 h-6 text-emerald-400" /> Proyectos de Infraestructura & Desarrollo
-          </h1>
-          <p className="text-xs text-slate-400 mt-1">
-            Gestión de iniciativas estratégicas, migraciones, proyectos de redes y ciberseguridad.
-          </p>
-        </div>
+      <EntityPageHeader 
+        icon={<FolderKanban className="w-5 h-5" />}
+        title="Proyectos de Infraestructura & Desarrollo"
+        description="Gestión de iniciativas estratégicas, migraciones, proyectos de redes y ciberseguridad."
+        actionLabel="Nuevo Proyecto"
+        onAction={() => openQuickCreate('project')}
+      />
 
-        <button
-          onClick={() => openQuickCreate('project')}
-          className="flex items-center gap-2 px-4 py-2.5 rounded-xl font-bold text-xs bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-400 hover:to-teal-500 text-slate-950 shadow-lg shadow-emerald-500/20 transition-all self-start md:self-auto"
-        >
-          <Plus className="w-4 h-4" /> Nuevo Proyecto
-        </button>
-      </div>
-
-      {/* Search */}
-      <div className={`p-4 rounded-2xl border ${isDarkTheme ? 'bg-slate-900/80 border-slate-800' : 'bg-white border-slate-200'}`}>
-        <div className="relative max-w-sm">
-          <Search className="w-4 h-4 text-slate-500 absolute left-3 top-2.5" />
+      {/* Filter Bar */}
+      <div className="p-3 lg:p-4 rounded-xl border border-border-subtle bg-surface flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div className="relative flex-1 max-w-sm">
+          <Search className="w-3.5 h-3.5 text-content-muted absolute left-3 top-2" />
           <input
             type="text"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             placeholder="Buscar proyectos por nombre o ID..."
-            className="w-full pl-9 pr-3 py-1.5 rounded-xl bg-slate-950 border border-slate-800 text-xs text-slate-200 placeholder-slate-500 focus:outline-none focus:border-cyan-500"
+            className="w-full pl-8 pr-3 py-1.5 rounded-lg bg-surface-raised border border-border-subtle text-xs text-content-primary placeholder-content-muted focus:outline-none focus:border-emerald-500/50"
           />
         </div>
       </div>
 
-      {/* Projects Cards Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        {filteredProjects.map((project) => (
-          <div
-            key={project.id}
-            onClick={() => setSelectedProject(project)}
-            className={`p-6 rounded-2xl border transition-all cursor-pointer hover:border-emerald-500/50 space-y-4 shadow-sm ${
-              isDarkTheme ? 'bg-slate-900/80 border-slate-800' : 'bg-white border-slate-200'
-            }`}
-          >
-            <div className="flex items-start justify-between gap-3">
-              <div>
-                <span className="font-mono text-xs font-bold text-emerald-400 bg-emerald-500/10 px-2.5 py-0.5 rounded border border-emerald-500/20">
-                  {project.id}
-                </span>
-                <h3 className="text-base font-bold text-white mt-2">{project.name}</h3>
-              </div>
-              <span className="text-[10px] px-2.5 py-1 rounded-full uppercase font-mono font-bold bg-slate-800 text-slate-300">
-                {project.status}
-              </span>
-            </div>
-
-            <p className="text-xs text-slate-400 line-clamp-2 leading-relaxed">{project.description}</p>
-
-            {/* Progress Bar */}
-            <div className="space-y-1.5">
-              <div className="flex items-center justify-between text-xs font-semibold">
-                <span className="text-slate-400 flex items-center gap-1">
-                  <TrendingUp className="w-3.5 h-3.5 text-emerald-400" /> Avance
-                </span>
-                <span className="text-emerald-400 font-mono">{project.progress}%</span>
-              </div>
-              <div className="w-full h-2 rounded-full bg-slate-950 overflow-hidden border border-slate-800">
-                <div
-                  className="h-full bg-gradient-to-r from-emerald-500 to-cyan-400 rounded-full transition-all duration-500"
-                  style={{ width: `${project.progress}%` }}
-                />
-              </div>
-            </div>
-
-            {/* Footer */}
-            <div className="flex items-center justify-between text-xs text-slate-400 pt-3 border-t border-slate-800/60">
-              <span>Líder: <strong className="text-slate-200">{project.leadName}</strong></span>
-              <span className="font-mono flex items-center gap-1">
-                <Clock className="w-3.5 h-3.5 text-slate-500" /> Meta: {project.targetDate}
-              </span>
-            </div>
-          </div>
-        ))}
+      {/* TABLE VIEW */}
+      <div className="rounded-xl border border-border-subtle overflow-hidden bg-surface shadow-sm">
+        <div className="overflow-x-auto custom-scrollbar">
+          <table className="w-full text-left text-xs whitespace-nowrap">
+            <thead className="bg-surface-raised text-content-muted font-mono text-[10px] uppercase border-b border-border-subtle">
+              <tr>
+                <th className="px-4 py-3 font-semibold">Estado</th>
+                <th className="px-4 py-3 font-semibold">ID / Proyecto</th>
+                <th className="px-4 py-3 font-semibold">Líder</th>
+                <th className="px-4 py-3 font-semibold w-48">Progreso</th>
+                <th className="px-4 py-3 font-semibold">Fecha Objetivo</th>
+                <th className="px-4 py-3 font-semibold">Riesgos / Bloqueos</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-border-subtle text-content-secondary">
+              {filteredProjects.length === 0 ? (
+                <tr><td colSpan={6} className="text-center py-10">No hay proyectos</td></tr>
+              ) : (
+                filteredProjects.map((project) => {
+                  
+                  const targetDatePassed = project.targetDate && project.targetDate < new Date().toISOString().split('T')[0] && project.progress < 100;
+                  
+                  return (
+                    <tr
+                      key={project.id}
+                      onClick={() => setSelectedProject(project)}
+                      className="hover:bg-surface-hover cursor-pointer transition-colors group"
+                    >
+                      <td className="px-4 py-3">
+                        <StatusBadge status={project.status} />
+                      </td>
+                      <td className="px-4 py-3 max-w-xs xl:max-w-md truncate">
+                        <div className="flex items-center gap-2">
+                          <span className="font-mono font-bold text-emerald-400">{project.id}</span>
+                          <span className="text-content-primary font-medium group-hover:text-emerald-300 transition-colors">{project.name}</span>
+                        </div>
+                      </td>
+                      <td className="px-4 py-3">
+                        <AssigneeAvatar name={project.leadName} />
+                      </td>
+                      <td className="px-4 py-3">
+                        <div className="flex items-center gap-3">
+                          <div className="flex-1 h-1.5 rounded-full bg-surface-raised overflow-hidden">
+                            <div 
+                              className={`h-full rounded-full ${project.progress >= 100 ? 'bg-emerald-400' : 'bg-cyan-400'}`}
+                              style={{ width: `${project.progress}%` }}
+                            />
+                          </div>
+                          <span className="font-mono text-[10px] w-8 text-right">{project.progress}%</span>
+                        </div>
+                      </td>
+                      <td className="px-4 py-3">
+                        <span className={`font-mono text-[11px] ${targetDatePassed ? 'text-rose-400 font-bold' : 'text-content-secondary'}`}>
+                          {project.targetDate || 'Sin fecha'}
+                        </span>
+                      </td>
+                      <td className="px-4 py-3">
+                        {project.risks ? (
+                          <div className="flex items-center gap-1.5 text-rose-400 max-w-[150px] truncate" title={project.risks}>
+                            <AlertTriangle className="w-3.5 h-3.5 shrink-0" />
+                            <span className="truncate">{project.risks}</span>
+                          </div>
+                        ) : (
+                          <span className="text-content-muted text-[11px] italic">Ninguno</span>
+                        )}
+                      </td>
+                    </tr>
+                  )
+                })
+              )}
+            </tbody>
+          </table>
+        </div>
       </div>
     </div>
   );
