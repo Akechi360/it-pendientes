@@ -118,7 +118,7 @@ export function subscribeCollection<T>(
     .then(({ data, error }) => {
       if (error) {
         console.warn(`[Supabase] Fetch inicial fallido para ${tableName}:`, error.message);
-        callback(fallbackData);
+        callback([]);
       } else {
         const items = (data ?? []).map((row) => toCamel<T>(row as Record<string, unknown>));
         callback(items);

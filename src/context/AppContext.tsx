@@ -90,16 +90,16 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const [isDarkTheme, setIsDarkTheme] = useState<boolean>(true);
 
   // Realtime Collections with default fallback to seed data
-  const [tasks, setTasks] = useState<TaskItem[]>(SEED_TASKS);
-  const [projects, setProjects] = useState<ProjectItem[]>(SEED_PROJECTS);
-  const [incidents, setIncidents] = useState<IncidentItem[]>(SEED_INCIDENTS);
-  const [meetings, setMeetings] = useState<MeetingItem[]>(SEED_MEETINGS);
-  const [documents, setDocuments] = useState<DocumentItem[]>(SEED_DOCUMENTS);
-  const [assets, setAssets] = useState<AssetItem[]>(SEED_ASSETS);
-  const [renewals, setRenewals] = useState<RenewalItem[]>(SEED_RENEWALS);
-  const [activityLogs, setActivityLogs] = useState<ActivityLogItem[]>(SEED_LOGS);
-  const [notifications, setNotifications] = useState<NotificationItem[]>(SEED_NOTIFICATIONS);
-  const [files, setFiles] = useState<FileItem[]>(SEED_FILES);
+  const [tasks, setTasks] = useState<TaskItem[]>([]);
+  const [projects, setProjects] = useState<ProjectItem[]>([]);
+  const [incidents, setIncidents] = useState<IncidentItem[]>([]);
+  const [meetings, setMeetings] = useState<MeetingItem[]>([]);
+  const [documents, setDocuments] = useState<DocumentItem[]>([]);
+  const [assets, setAssets] = useState<AssetItem[]>([]);
+  const [renewals, setRenewals] = useState<RenewalItem[]>([]);
+  const [activityLogs, setActivityLogs] = useState<ActivityLogItem[]>([]);
+  const [notifications, setNotifications] = useState<NotificationItem[]>([]);
+  const [files, setFiles] = useState<FileItem[]>([]);
 
   // Modals
   const [isCommandPaletteOpen, setIsCommandPaletteOpen] = useState<boolean>(false);
@@ -132,16 +132,16 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
   useEffect(() => {
     // Realtime listeners
-    const unsubTasks = subscribeCollection<TaskItem>('tasks', setTasks, SEED_TASKS);
-    const unsubProjects = subscribeCollection<ProjectItem>('projects', setProjects, SEED_PROJECTS);
-    const unsubIncidents = subscribeCollection<IncidentItem>('incidents', setIncidents, SEED_INCIDENTS);
-    const unsubMeetings = subscribeCollection<MeetingItem>('meetings', setMeetings, SEED_MEETINGS);
-    const unsubDocs = subscribeCollection<DocumentItem>('documents', setDocuments, SEED_DOCUMENTS);
-    const unsubAssets = subscribeCollection<AssetItem>('assets', setAssets, SEED_ASSETS);
-    const unsubRenewals = subscribeCollection<RenewalItem>('renewals', setRenewals, SEED_RENEWALS);
-    const unsubLogs = subscribeCollection<ActivityLogItem>('activity_logs', setActivityLogs, SEED_LOGS);
-    const unsubNotifs = subscribeCollection<NotificationItem>('notifications', setNotifications, SEED_NOTIFICATIONS);
-    const unsubFiles = subscribeCollection<FileItem>('files', setFiles, SEED_FILES);
+    const unsubTasks = subscribeCollection<TaskItem>('tasks', setTasks);
+    const unsubProjects = subscribeCollection<ProjectItem>('projects', setProjects);
+    const unsubIncidents = subscribeCollection<IncidentItem>('incidents', setIncidents);
+    const unsubMeetings = subscribeCollection<MeetingItem>('meetings', setMeetings);
+    const unsubDocs = subscribeCollection<DocumentItem>('documents', setDocuments);
+    const unsubAssets = subscribeCollection<AssetItem>('assets', setAssets);
+    const unsubRenewals = subscribeCollection<RenewalItem>('renewals', setRenewals);
+    const unsubLogs = subscribeCollection<ActivityLogItem>('activity_logs', setActivityLogs);
+    const unsubNotifs = subscribeCollection<NotificationItem>('notifications', setNotifications);
+    const unsubFiles = subscribeCollection<FileItem>('files', setFiles);
 
     return () => {
       unsubTasks();
