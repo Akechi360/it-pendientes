@@ -15,14 +15,15 @@ import {
   ChevronRight,
   ShieldCheck,
   Menu,
-  X
+  X,
+  LogOut
 } from 'lucide-react';
 import { useApp, ActiveTab } from '../../context/AppContext';
 import { useAuth } from '../../context/AuthContext';
 
 export const Sidebar: React.FC = () => {
   const { activeTab, setActiveTab, tasks, incidents, renewals } = useApp();
-  const { currentUser, switchUser, isAdmin } = useAuth();
+  const { currentUser, signOut, isAdmin } = useAuth();
   
   // Responsive sidebar logic
   const [collapsed, setCollapsed] = useState<boolean>(false);
@@ -158,33 +159,16 @@ export const Sidebar: React.FC = () => {
           )}
         </div>
 
-        {/* Quick Role Switcher Button */}
+        {/* Logout Button */}
         {!collapsed && (
-          <div className="mt-4 pt-3 border-t border-border-subtle flex items-center justify-between text-xs">
-            <div className="flex gap-1 w-full">
-              <button
-                onClick={() => switchUser('admin')}
-                className={`flex-1 py-1 rounded text-[10px] font-bold uppercase tracking-wider transition-all border ${
-                  isAdmin 
-                    ? 'bg-surface-raised border-border-active text-cyan-400' 
-                    : 'bg-transparent border-transparent text-content-muted hover:text-content-primary hover:bg-surface'
-                }`}
-                title="Cambiar a Jefe de Sistemas (Admin)"
-              >
-                Admin
-              </button>
-              <button
-                onClick={() => switchUser('analyst')}
-                className={`flex-1 py-1 rounded text-[10px] font-bold uppercase tracking-wider transition-all border ${
-                  !isAdmin 
-                    ? 'bg-surface-raised border-border-active text-cyan-400' 
-                    : 'bg-transparent border-transparent text-content-muted hover:text-content-primary hover:bg-surface'
-                }`}
-                title="Cambiar a Analista IT (Operativo)"
-              >
-                Analista
-              </button>
-            </div>
+          <div className="mt-4 pt-3 border-t border-border-subtle">
+            <button
+              onClick={() => signOut()}
+              className="w-full flex items-center justify-center gap-2 py-2 rounded-lg text-xs font-bold text-content-muted hover:bg-surface-raised hover:text-rose-400 transition-colors"
+            >
+              <LogOut size={14} />
+              Cerrar Sesión
+            </button>
           </div>
         )}
       </div>
