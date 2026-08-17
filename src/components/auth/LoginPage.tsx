@@ -20,14 +20,13 @@ export const LoginPage: React.FC = () => {
     <div className="flex min-h-screen bg-canvas font-sans overflow-hidden">
       
       {/* Left Side: Branding / Graphic */}
-      <div className="hidden lg:flex lg:w-1/2 relative flex-col justify-between p-12 bg-[#09090b] border-r border-border-subtle overflow-hidden">
-        {/* Background Effects */}
-        <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-20 mix-blend-overlay"></div>
-        <div className="absolute -top-1/4 -left-1/4 w-1/2 h-1/2 bg-cyan-500/20 rounded-full blur-[120px]"></div>
-        <div className="absolute bottom-0 right-0 w-3/4 h-3/4 bg-blue-600/10 rounded-full blur-[150px]"></div>
+      <div className="hidden lg:flex lg:w-1/2 relative flex-col justify-between p-12 bg-slate-950 border-r border-border-subtle overflow-hidden">
+        {/* Background Image (Blurred) */}
+        <div className="absolute inset-0 bg-[url('/2279867.jpg')] bg-cover bg-center opacity-40 blur-md scale-105"></div>
         
-        {/* Grid Pattern */}
-        <div className="absolute inset-0 bg-[linear-gradient(to_right,#80808012_1px,transparent_1px),linear-gradient(to_bottom,#80808012_1px,transparent_1px)] bg-[size:24px_24px]"></div>
+        {/* Dark Gradient Overlay for text readability */}
+        <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/80 to-transparent"></div>
+        <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-20 mix-blend-overlay"></div>
 
         <div className="relative z-10">
           <div className="inline-flex items-center gap-3 text-content-primary">
