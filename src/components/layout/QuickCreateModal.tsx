@@ -5,11 +5,7 @@ import {
   CheckSquare,
   LifeBuoy,
   Users,
-  FolderKanban,
-  FileText,
-  Server,
-  RefreshCw,
-  AlertCircle
+  FolderKanban
 } from 'lucide-react';
 import { useApp, QuickCreateType } from '../../context/AppContext';
 import { useAuth } from '../../context/AuthContext';
@@ -19,13 +15,11 @@ import {
   IncidentItem,
   MeetingItem,
   ProjectItem,
-  DocumentItem,
-  AssetItem,
   RenewalItem
 } from '../../types';
 
 export const QuickCreateModal: React.FC = () => {
-  const { isQuickCreateOpen, setIsQuickCreateOpen, quickCreateType, toast, isDarkTheme } = useApp();
+  const { isQuickCreateOpen, setIsQuickCreateOpen, quickCreateType, toast } = useApp();
   const { currentUser } = useAuth();
 
   const [type, setType] = useState<QuickCreateType>(quickCreateType);
@@ -49,7 +43,7 @@ export const QuickCreateModal: React.FC = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!title.trim()) {
+    if (!title.trim() || !currentUser) {
       toast('El título es obligatorio', 'warning');
       return;
     }
@@ -114,8 +108,8 @@ export const QuickCreateModal: React.FC = () => {
           id,
           title,
           objective: description,
-          startTime: `${dueDate}T10:00`,
-          endTime: `${dueDate}T11:00`,
+          startTime: `${dueDate}T10:00:00.000Z`,
+          endTime: `${dueDate}T11:00:00.000Z`,
           participants: [currentUser.displayName],
           modality: 'presencial',
           status: 'programada',
@@ -177,16 +171,14 @@ export const QuickCreateModal: React.FC = () => {
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/70 backdrop-blur-sm animate-in fade-in duration-200">
       <div
-        className={`w-full max-w-lg rounded-2xl shadow-2xl border p-6 overflow-hidden transition-all ${
-          isDarkTheme ? 'bg-slate-900 border-slate-800 text-slate-100' : 'bg-white border-slate-200 text-slate-900'
-        }`}
+        className="w-full max-w-lg rounded-2xl shadow-2xl border p-6 bg-surface border-border-subtle overflow-hidden transition-all text-content-primary"
       >
         {/* Modal Header */}
-        <div className="flex items-center justify-between mb-5 pb-3 border-b border-slate-800">
+        <div className="flex items-center justify-between mb-5 pb-3 border-b border-border-subtle">
           <h2 className="text-lg font-bold flex items-center gap-2">
             <PlusCircle className="w-5 h-5 text-cyan-400" /> Nuevo Registro Rápido
           </h2>
-          <button onClick={handleClose} className="p-1 rounded text-slate-400 hover:text-slate-200">
+          <button onClick={handleClose} className="p-1.5 rounded-lg text-content-muted hover:text-content-primary hover:bg-surface-hover transition-colors">
             <X className="w-5 h-5" />
           </button>
         </div>
@@ -196,10 +188,10 @@ export const QuickCreateModal: React.FC = () => {
           <button
             type="button"
             onClick={() => setType('task')}
-            className={`flex flex-col items-center justify-center p-2.5 rounded-xl border text-xs font-semibold gap-1 transition-all ${
+            className={`flex flex-col items-center justify-center p-2.5 rounded-xl border text-xs font-semibold gap-1.5 transition-colors ${
               type === 'task'
-                ? 'bg-cyan-500/20 border-cyan-500 text-cyan-400'
-                : 'bg-slate-800/40 border-slate-800 text-slate-400 hover:text-slate-200'
+                ? 'bg-cyan-500/10 border-cyan-500/30 text-cyan-400'
+                : 'bg-surface-raised border-border-subtle text-content-muted hover:text-content-primary hover:bg-surface-hover'
             }`}
           >
             <CheckSquare className="w-4 h-4" /> Tarea
@@ -207,10 +199,10 @@ export const QuickCreateModal: React.FC = () => {
           <button
             type="button"
             onClick={() => setType('incident')}
-            className={`flex flex-col items-center justify-center p-2.5 rounded-xl border text-xs font-semibold gap-1 transition-all ${
+            className={`flex flex-col items-center justify-center p-2.5 rounded-xl border text-xs font-semibold gap-1.5 transition-colors ${
               type === 'incident'
-                ? 'bg-amber-500/20 border-amber-500 text-amber-400'
-                : 'bg-slate-800/40 border-slate-800 text-slate-400 hover:text-slate-200'
+                ? 'bg-amber-500/10 border-amber-500/30 text-amber-400'
+                : 'bg-surface-raised border-border-subtle text-content-muted hover:text-content-primary hover:bg-surface-hover'
             }`}
           >
             <LifeBuoy className="w-4 h-4" /> Incidencia
@@ -218,10 +210,10 @@ export const QuickCreateModal: React.FC = () => {
           <button
             type="button"
             onClick={() => setType('meeting')}
-            className={`flex flex-col items-center justify-center p-2.5 rounded-xl border text-xs font-semibold gap-1 transition-all ${
+            className={`flex flex-col items-center justify-center p-2.5 rounded-xl border text-xs font-semibold gap-1.5 transition-colors ${
               type === 'meeting'
-                ? 'bg-purple-500/20 border-purple-500 text-purple-400'
-                : 'bg-slate-800/40 border-slate-800 text-slate-400 hover:text-slate-200'
+                ? 'bg-purple-500/10 border-purple-500/30 text-purple-400'
+                : 'bg-surface-raised border-border-subtle text-content-muted hover:text-content-primary hover:bg-surface-hover'
             }`}
           >
             <Users className="w-4 h-4" /> Reunión
@@ -229,10 +221,10 @@ export const QuickCreateModal: React.FC = () => {
           <button
             type="button"
             onClick={() => setType('project')}
-            className={`flex flex-col items-center justify-center p-2.5 rounded-xl border text-xs font-semibold gap-1 transition-all ${
+            className={`flex flex-col items-center justify-center p-2.5 rounded-xl border text-xs font-semibold gap-1.5 transition-colors ${
               type === 'project'
-                ? 'bg-emerald-500/20 border-emerald-500 text-emerald-400'
-                : 'bg-slate-800/40 border-slate-800 text-slate-400 hover:text-slate-200'
+                ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-400'
+                : 'bg-surface-raised border-border-subtle text-content-muted hover:text-content-primary hover:bg-surface-hover'
             }`}
           >
             <FolderKanban className="w-4 h-4" /> Proyecto
@@ -242,35 +234,35 @@ export const QuickCreateModal: React.FC = () => {
         {/* Form */}
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <label className="block text-xs font-semibold text-slate-400 mb-1">Título / Asunto *</label>
+            <label className="block text-[10px] font-bold text-content-muted uppercase tracking-wider mb-1.5">Título / Asunto *</label>
             <input
               type="text"
               required
               value={title}
               onChange={(e) => setTitle(e.target.value)}
               placeholder="Ej. Reemplazar disco duro en Servidor BD01..."
-              className="w-full px-3.5 py-2 rounded-xl bg-slate-950 border border-slate-800 text-slate-100 placeholder-slate-500 focus:outline-none focus:border-cyan-500 text-sm"
+              className="w-full px-3.5 py-2 rounded-lg bg-surface-raised border border-border-subtle text-content-primary placeholder-content-muted focus:outline-none focus:border-cyan-500/50 text-xs"
             />
           </div>
 
           <div>
-            <label className="block text-xs font-semibold text-slate-400 mb-1">Descripción / Notas</label>
+            <label className="block text-[10px] font-bold text-content-muted uppercase tracking-wider mb-1.5">Descripción / Notas</label>
             <textarea
               rows={3}
               value={description}
               onChange={(e) => setDescription(e.target.value)}
               placeholder="Detalles adicionales o requerimientos..."
-              className="w-full px-3.5 py-2 rounded-xl bg-slate-950 border border-slate-800 text-slate-100 placeholder-slate-500 focus:outline-none focus:border-cyan-500 text-sm resize-none"
+              className="w-full px-3.5 py-2 rounded-lg bg-surface-raised border border-border-subtle text-content-primary placeholder-content-muted focus:outline-none focus:border-cyan-500/50 text-xs resize-none"
             />
           </div>
 
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="block text-xs font-semibold text-slate-400 mb-1">Prioridad</label>
+              <label className="block text-[10px] font-bold text-content-muted uppercase tracking-wider mb-1.5">Prioridad</label>
               <select
                 value={priority}
                 onChange={(e) => setPriority(e.target.value as any)}
-                className="w-full px-3 py-2 rounded-xl bg-slate-950 border border-slate-800 text-slate-100 text-sm focus:outline-none focus:border-cyan-500"
+                className="w-full px-3 py-2 rounded-lg bg-surface-raised border border-border-subtle text-content-primary text-xs focus:outline-none focus:border-cyan-500/50"
               >
                 <option value="baja">Baja</option>
                 <option value="media">Media</option>
@@ -280,27 +272,27 @@ export const QuickCreateModal: React.FC = () => {
             </div>
 
             <div>
-              <label className="block text-xs font-semibold text-slate-400 mb-1">Fecha Límite / Fecha Evento</label>
+              <label className="block text-[10px] font-bold text-content-muted uppercase tracking-wider mb-1.5">Fecha Límite / Evento</label>
               <input
                 type="date"
                 value={dueDate}
                 onChange={(e) => setDueDate(e.target.value)}
-                className="w-full px-3 py-2 rounded-xl bg-slate-950 border border-slate-800 text-slate-100 text-sm focus:outline-none focus:border-cyan-500"
+                className="w-full px-3 py-2 rounded-lg bg-surface-raised border border-border-subtle text-content-primary text-xs focus:outline-none focus:border-cyan-500/50"
               />
             </div>
           </div>
 
-          <div className="pt-3 border-t border-slate-800 flex items-center justify-end gap-3">
+          <div className="pt-4 border-t border-border-subtle flex items-center justify-end gap-3 mt-6">
             <button
               type="button"
               onClick={handleClose}
-              className="px-4 py-2 rounded-xl border border-slate-800 text-xs font-medium text-slate-400 hover:bg-slate-800 hover:text-slate-200"
+              className="px-4 py-2 rounded-lg border border-border-subtle text-xs font-medium text-content-secondary hover:bg-surface-hover hover:text-content-primary transition-colors"
             >
               Cancelar
             </button>
             <button
               type="submit"
-              className="px-5 py-2 rounded-xl bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-slate-950 font-bold text-xs shadow-lg shadow-cyan-500/20"
+              className="px-5 py-2 rounded-lg bg-cyan-500 hover:bg-cyan-400 text-slate-950 font-bold text-xs shadow-sm transition-colors"
             >
               Guardar Registro
             </button>
