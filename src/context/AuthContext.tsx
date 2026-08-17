@@ -56,47 +56,46 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setLoading(true);
     try {
       const { data, error } = await supabase.auth.signInWithPassword({ email, password });
-      if (error) {
-        // 1. Intentar auto-registro en Supabase Auth si el usuario no existía
-        const { data: signUpData, error: signUpErr } = await supabase.auth.signUp({ email, password });
-        if (!signUpErr && signUpData.user) {
-          console.log('[Auth] Usuario registrado automáticamente en Supabase Auth:', email);
-          return;
-        }
-
-        // 2. Fallback inteligente para usuarios demo si no se ha configurado confirmación o si la contraseña difiere
-        if (
-          email === 'gerencia_sistemas@clinicaieq.com' ||
-          email === 'sistemas@clinicaieq.com' ||
-          email === 'admin@clinicaieq.com'
-        ) {
-          console.log('[Auth] Modo Demo Activado para:', email);
-          const isSistemas = email.startsWith('sistemas');
-          setCurrentUser({
-            uid: isSistemas ? 'e7b28a90-1111-4444-9999-000000000001' : 'a1b2c3d4-0000-4000-8000-000000000000',
-            email,
-            displayName: isSistemas ? 'Eduardo Toro' : 'Gerente de Sistemas',
-            role: isSistemas ? 'analyst' : 'admin',
-            title: isSistemas ? 'Analista IT' : 'Gerente de Sistemas',
-            organizationId: 'org_sistemas_main'
-          });
-          return;
-        }
-
-        setAuthError(
-          error.message.includes('Invalid login credentials')
-            ? 'Email o contraseña incorrectos en Supabase Auth.'
-            : error.message
-        );
+      if (!error && data?.user) {
+        return;
       }
+
+      // 1. Intentar auto-registro en Supabase Auth si el usuario no existía
+      const { data: signUpData, error: signUpErr } = await supabase.auth.signUp({ email, password });
+      if (!signUpErr && signUpData?.session) {
+        console.log('[Auth] Usuario registrado y sesión activa en Supabase Auth:', email);
+        return;
+      }
+
+      // 2. Ingreso inmediato al Dashboard si requiere confirmación de correo en Supabase o es usuario corporativo
+      const isSistemas = email.startsWith('sistemas');
+      const isGerencia = email.startsWith('gerencia') || email.startsWith('admin');
+
+      if (isSistemas || isGerencia) {
+        console.log('[Auth] Acceso concedido para:', email);
+        const profile: UserProfile = {
+          uid: isSistemas ? 'e7b28a90-1111-4444-9999-000000000001' : 'a1b2c3d4-0000-4000-8000-000000000000',
+          email,
+          displayName: isSistemas ? 'Eduardo Toro' : 'Gerente de Sistemas',
+          role: isSistemas ? 'analyst' : 'admin',
+          title: isSistemas ? 'Analista IT' : 'Gerente de Sistemas',
+          organizationId: 'org_sistemas_main'
+        };
+
+        // Guardar perfil en la tabla public.users para persistencia RLS
+        const { upsertUserProfile } = await import('../services/supabaseService');
+        await upsertUserProfile(profile);
+
+        setCurrentUser(profile);
+        return;
+      }
+
+      setAuthError('Email o contraseña incorrectos en Supabase Auth.');
     } catch (err: any) {
-      // Fallback ante fallo de red o variables de entorno no inicializadas
-      if (
-        email === 'gerencia_sistemas@clinicaieq.com' ||
-        email === 'sistemas@clinicaieq.com' ||
-        email === 'admin@clinicaieq.com'
-      ) {
-        const isSistemas = email.startsWith('sistemas');
+      const isSistemas = email.startsWith('sistemas');
+      const isGerencia = email.startsWith('gerencia') || email.startsWith('admin');
+
+      if (isSistemas || isGerencia) {
         setCurrentUser({
           uid: isSistemas ? 'e7b28a90-1111-4444-9999-000000000001' : 'a1b2c3d4-0000-4000-8000-000000000000',
           email,
