@@ -121,7 +121,7 @@ export function subscribeCollection<T>(
         callback(fallbackData);
       } else {
         const items = (data ?? []).map((row) => toCamel<T>(row as Record<string, unknown>));
-        callback(items.length > 0 ? items : fallbackData);
+        callback(items);
       }
     });
 
@@ -146,7 +146,7 @@ export function subscribeCollection<T>(
     .subscribe((status) => {
       if (status === 'CHANNEL_ERROR') {
         console.warn(`[Supabase] Error en canal realtime para ${tableName}.`);
-        callback(fallbackData);
+        callback([]);
       }
     });
 
