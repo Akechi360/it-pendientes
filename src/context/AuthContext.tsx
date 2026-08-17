@@ -30,9 +30,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           const newProfile: UserProfile = {
             uid: session.user.id,
             email: session.user.email || '',
-            displayName: session.user.email?.includes('sistemas') ? 'Eduardo Toro' : (session.user.email?.split('@')[0] || 'Usuario IT'),
-            role: session.user.email?.includes('sistemas') ? 'analyst' : 'admin',
-            title: session.user.email?.includes('sistemas') ? 'Analista IT' : 'Jefe de Sistemas',
+            displayName: session.user.email?.startsWith('sistemas') ? 'Eduardo Toro' : 'Gerente de Sistemas',
+            role: session.user.email?.startsWith('sistemas') ? 'analyst' : 'admin',
+            title: session.user.email?.startsWith('sistemas') ? 'Analista IT' : 'Gerente de Sistemas',
             organizationId: 'org_sistemas_main'
           };
           // Import y utiliza upsertUserProfile

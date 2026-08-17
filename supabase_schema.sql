@@ -315,14 +315,14 @@ SET email = EXCLUDED.email,
     role = EXCLUDED.role,
     title = EXCLUDED.title;
 
--- 2. Jefe de Sistemas (Admin)
+-- 2. Gerente de Sistemas (Admin)
 INSERT INTO public.users (uid, email, display_name, role, title, organization_id)
 VALUES (
   'a1b2c3d4-0000-4000-8000-000000000000',
-  'admin@clinicaieq.com',
-  'Jefe de Sistemas',
+  'gerencia_sistemas@clinicaieq.com',
+  'Gerente de Sistemas',
   'admin',
-  'Jefe de Sistemas',
+  'Gerente de Sistemas',
   'org_sistemas_main'
 )
 ON CONFLICT (uid) DO UPDATE

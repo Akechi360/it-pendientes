@@ -56,7 +56,7 @@ export const FilesView: React.FC = () => {
         size: selectedFile.size,
         type: selectedFile.type || 'application/octet-stream',
         url: fileUrl,
-        module: 'General',
+        module: 'general',
         uploadedBy: currentUser.displayName,
         organizationId: currentUser.organizationId,
         createdAt: new Date().toISOString()

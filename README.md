@@ -28,8 +28,8 @@ Aplicación web profesional, ágil, segura y responsive diseñada específicamen
   - **Email**: `sistemas@clinicaieq.com`
   - **Contraseña inicial**: `EduardoIT2026!`
   - **Rol**: `analyst`
-- **Jefe de Sistemas (Admin)**:
-  - **Email**: `admin@clinicaieq.com`
+- **Gerente de Sistemas (Admin)**:
+  - **Email**: `gerencia_sistemas@clinicaieq.com`
   - **Contraseña inicial**: `AdminIT2026!`
   - **Rol**: `admin`
 

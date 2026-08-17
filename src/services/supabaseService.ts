@@ -112,10 +112,9 @@ export function subscribeCollection<T>(
   fallbackData: T[] = []
 ): () => void {
   // Fetch inicial
-  supabase
-    .from(tableName)
-    .select('*')
-    .then(({ data, error }) => {
+  (async () => {
+    try {
+      const { data, error } = await supabase.from(tableName).select('*');
       if (error || !data || data.length === 0) {
         console.warn(`[Supabase] Utilizando respaldo demo para ${tableName}:`, error?.message || 'Tabla vacía o inaccesible');
         callback(fallbackData);
@@ -123,11 +122,11 @@ export function subscribeCollection<T>(
         const items = data.map((row) => toCamel<T>(row as Record<string, unknown>));
         callback(items);
       }
-    })
-    .catch((err) => {
+    } catch (err) {
       console.warn(`[Supabase] Excepción en fetch para ${tableName}:`, err);
       callback(fallbackData);
-    });
+    }
+  })();
 
   // Suscripción realtime (Postgres Changes)
   const channel = supabase
