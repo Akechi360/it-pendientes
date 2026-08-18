@@ -6,6 +6,7 @@ import { QuickCreateModal } from './QuickCreateModal';
 import { TaskDetailModal } from '../tasks/TaskDetailModal';
 import { IncidentDetailModal } from '../incidents/IncidentDetailModal';
 import { ProjectDetailModal } from '../projects/ProjectDetailModal';
+import { UserProfileModal } from '../profile/UserProfileModal';
 import { useApp } from '../../context/AppContext';
 
 import { DashboardView } from '../dashboard/DashboardView';
@@ -47,6 +48,7 @@ export const AppShell: React.FC = () => {
 
       <CommandPalette />
       <QuickCreateModal />
+      <UserProfileModal />
       
       {/* Global Entity Modals */}
       <TaskDetailModal />

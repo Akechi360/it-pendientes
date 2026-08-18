@@ -56,6 +56,8 @@ interface AppContextType {
   setIsQuickCreateOpen: (open: boolean) => void;
   quickCreateType: QuickCreateType;
   openQuickCreate: (type: QuickCreateType) => void;
+  isProfileOpen: boolean;
+  setIsProfileOpen: (open: boolean) => void;
 
   // Selected Detail Modal
   selectedTask: TaskItem | null;
@@ -93,6 +95,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const [isCommandPaletteOpen, setIsCommandPaletteOpen] = useState<boolean>(false);
   const [isQuickCreateOpen, setIsQuickCreateOpen] = useState<boolean>(false);
   const [quickCreateType, setQuickCreateType] = useState<QuickCreateType>('task');
+  const [isProfileOpen, setIsProfileOpen] = useState<boolean>(false);
 
   // Selected Details
   const [selectedTask, setSelectedTask] = useState<TaskItem | null>(null);
@@ -176,6 +179,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         setIsQuickCreateOpen,
         quickCreateType,
         openQuickCreate,
+        isProfileOpen,
+        setIsProfileOpen,
         selectedTask,
         setSelectedTask,
         selectedProject,

@@ -4,19 +4,7 @@ import {
   UserProfile,
   ActivityLogItem,
 } from '../types';
-import {
-  DEFAULT_ORG_ID,
-  SEED_TASKS,
-  SEED_PROJECTS,
-  SEED_INCIDENTS,
-  SEED_MEETINGS,
-  SEED_DOCUMENTS,
-  SEED_ASSETS,
-  SEED_RENEWALS,
-  SEED_LOGS,
-  SEED_NOTIFICATIONS,
-  SEED_FILES,
-} from './seedData';
+
 
 // ─────────────────────────────────────────────────────────────
 // camelCase ↔ snake_case helpers
@@ -68,39 +56,9 @@ function handleError(error: unknown, op: OperationType, path: string): never {
 // Seed / initial data
 // ─────────────────────────────────────────────────────────────
 export async function checkAndSeedSupabase(): Promise<void> {
-  try {
-    const { data, error } = await supabase.from('tasks').select('id').limit(1);
-    if (error) {
-      console.warn('[Supabase] No se pudo verificar seed:', error.message);
-      return;
-    }
-    if (data && data.length > 0) return; // ya hay datos
-
-    console.log('[Supabase] Tablas vacías — insertando datos iniciales...');
-
-    const seedSets: Array<{ table: string; rows: unknown[] }> = [
-      { table: 'tasks',          rows: SEED_TASKS },
-      { table: 'projects',       rows: SEED_PROJECTS },
-      { table: 'incidents',      rows: SEED_INCIDENTS },
-      { table: 'meetings',       rows: SEED_MEETINGS },
-      { table: 'documents',      rows: SEED_DOCUMENTS },
-      { table: 'assets',         rows: SEED_ASSETS },
-      { table: 'renewals',       rows: SEED_RENEWALS },
-      { table: 'activity_logs',  rows: SEED_LOGS },
-      { table: 'notifications',  rows: SEED_NOTIFICATIONS },
-      { table: 'files',          rows: SEED_FILES },
-    ];
-
-    for (const { table, rows } of seedSets) {
-      const snakeRows = (rows as Array<Record<string, unknown>>).map(toSnake);
-      const { error: err } = await supabase.from(table).insert(snakeRows);
-      if (err) console.warn(`[Supabase] Error seeding ${table}:`, err.message);
-    }
-
-    console.log('[Supabase] ✅ Seed completado.');
-  } catch (err) {
-    console.warn('[Supabase] Seed falló, usando datos locales como fallback.');
-  }
+  // Función desactivada: La aplicación funcionará estrictamente con datos reales 
+  // insertados por el usuario. No se inyectará mock data.
+  console.log('[Supabase] checkAndSeedSupabase desactivado para garantizar pureza de DB.');
 }
 
 // ─────────────────────────────────────────────────────────────

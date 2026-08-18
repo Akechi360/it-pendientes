@@ -19,7 +19,8 @@ export const Header: React.FC = () => {
     notifications,
     isDarkTheme,
     toggleTheme,
-    setActiveTab
+    setActiveTab,
+    setIsProfileOpen
   } = useApp();
   
   const { currentUser } = useAuth();
@@ -156,6 +157,22 @@ export const Header: React.FC = () => {
             </div>
           )}
         </div>
+
+        {/* Profile Button */}
+        <button
+          onClick={() => setIsProfileOpen(true)}
+          className="flex items-center gap-2 ml-2 pl-3 py-1 border-l border-border-subtle hover:opacity-80 transition-opacity"
+          title="Mi Perfil"
+        >
+          <div className="flex flex-col items-end hidden sm:flex">
+            <span className="text-xs font-bold text-content-primary leading-tight">{currentUser?.displayName.split(' ')[0]}</span>
+            <span className="text-[10px] text-content-muted capitalize">{currentUser?.role === 'admin' ? 'Administrador' : 'Analista'}</span>
+          </div>
+          <div className="w-8 h-8 rounded-full bg-cyan-500/20 text-cyan-400 flex items-center justify-center text-xs font-bold border border-cyan-500/30">
+            {currentUser?.displayName.charAt(0).toUpperCase() || 'U'}
+          </div>
+        </button>
+
       </div>
     </header>
   );
