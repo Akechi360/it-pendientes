@@ -32,7 +32,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             email: session.user.email || '',
             displayName: session.user.email?.startsWith('sistemas') ? 'Eduardo Toro' : 'Gerente de Sistemas',
             role: session.user.email?.startsWith('sistemas') ? 'analyst' : 'admin',
-            title: session.user.email?.startsWith('sistemas') ? 'Analista IT' : 'Gerente de Sistemas',
+            title: session.user.email?.startsWith('sistemas') ? 'Analista IT' : 'Gerencia IT',
             organizationId: 'org_sistemas_main'
           };
           // Import y utiliza upsertUserProfile
@@ -78,7 +78,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           email,
           displayName: isSistemas ? 'Eduardo Toro' : 'Gerente de Sistemas',
           role: isSistemas ? 'analyst' : 'admin',
-          title: isSistemas ? 'Analista IT' : 'Gerente de Sistemas',
+          title: isSistemas ? 'Analista IT' : 'Gerencia IT',
           organizationId: 'org_sistemas_main'
         };
 
@@ -101,7 +101,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           email,
           displayName: isSistemas ? 'Eduardo Toro' : 'Gerente de Sistemas',
           role: isSistemas ? 'analyst' : 'admin',
-          title: isSistemas ? 'Analista IT' : 'Gerente de Sistemas',
+          title: isSistemas ? 'Analista IT' : 'Gerencia IT',
           organizationId: 'org_sistemas_main'
         });
       } else {

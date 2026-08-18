@@ -76,34 +76,6 @@ export const LoginPage: React.FC = () => {
               Introduce tus credenciales corporativas para acceder.
             </p>
 
-            {/* Quick Demo Access Pills */}
-            <div className="space-y-2 p-3 rounded-xl bg-surface border border-border-subtle">
-              <p className="text-[10px] font-bold text-content-muted uppercase tracking-wider">Acceso Rápido Demo</p>
-              <div className="grid grid-cols-2 gap-2">
-                <button
-                  type="button"
-                  onClick={() => {
-                    setEmail('gerencia_sistemas@clinicaieq.com');
-                    setPassword('AdminIT2026!');
-                  }}
-                  className="px-2.5 py-1.5 rounded-lg bg-surface-raised hover:bg-surface-hover border border-border-subtle text-left text-xs transition-colors"
-                >
-                  <p className="font-semibold text-cyan-400">Gerente IT</p>
-                  <p className="text-[10px] text-content-muted truncate">gerencia_sistemas@...</p>
-                </button>
-                <button
-                  type="button"
-                  onClick={() => {
-                    setEmail('sistemas@clinicaieq.com');
-                    setPassword('EduardoIT2026!');
-                  }}
-                  className="px-2.5 py-1.5 rounded-lg bg-surface-raised hover:bg-surface-hover border border-border-subtle text-left text-xs transition-colors"
-                >
-                  <p className="font-semibold text-emerald-400">Eduardo Toro</p>
-                  <p className="text-[10px] text-content-muted truncate">sistemas@...</p>
-                </button>
-              </div>
-            </div>
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-5" noValidate>
