@@ -15,7 +15,9 @@ import { useAuth } from '../../context/AuthContext';
 export const Header: React.FC = () => {
   const {
     setIsCommandPaletteOpen,
-    openQuickCreate,
+    setIsCreateTaskOpen,
+    setIsCreateIncidentOpen,
+    setIsCreateProjectOpen,
     notifications,
     isDarkTheme,
     toggleTheme,
@@ -65,19 +67,19 @@ export const Header: React.FC = () => {
             <div className="absolute top-full right-0 mt-2 w-48 rounded-xl shadow-lg border border-border-subtle bg-surface overflow-hidden z-50">
               <div className="p-1 space-y-1">
                 <button
-                  onClick={() => { setShowCreateMenu(false); openQuickCreate('task'); }}
+                  onClick={() => { setShowCreateMenu(false); setIsCreateTaskOpen(true); }}
                   className="w-full text-left px-3 py-2 text-sm text-content-primary hover:bg-surface-hover rounded-lg transition-colors"
                 >
                   Tarea
                 </button>
                 <button
-                  onClick={() => { setShowCreateMenu(false); openQuickCreate('incident'); }}
+                  onClick={() => { setShowCreateMenu(false); setIsCreateIncidentOpen(true); }}
                   className="w-full text-left px-3 py-2 text-sm text-content-primary hover:bg-surface-hover rounded-lg transition-colors"
                 >
                   Incidencia
                 </button>
                 <button
-                  onClick={() => { setShowCreateMenu(false); openQuickCreate('project'); }}
+                  onClick={() => { setShowCreateMenu(false); setIsCreateProjectOpen(true); }}
                   className="w-full text-left px-3 py-2 text-sm text-content-primary hover:bg-surface-hover rounded-lg transition-colors"
                 >
                   Proyecto

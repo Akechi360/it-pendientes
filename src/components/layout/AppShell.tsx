@@ -2,7 +2,10 @@ import React from 'react';
 import { Sidebar } from './Sidebar';
 import { Header } from './Header';
 import { CommandPalette } from './CommandPalette';
-import { QuickCreateModal } from './QuickCreateModal';
+import { CreateTaskModal } from '../tasks/CreateTaskModal';
+import { CreateIncidentModal } from '../incidents/CreateIncidentModal';
+import { CreateProjectModal } from '../projects/CreateProjectModal';
+import { CreateMeetingModal } from '../meetings/CreateMeetingModal';
 import { TaskDetailModal } from '../tasks/TaskDetailModal';
 import { IncidentDetailModal } from '../incidents/IncidentDetailModal';
 import { ProjectDetailModal } from '../projects/ProjectDetailModal';
@@ -47,7 +50,13 @@ export const AppShell: React.FC = () => {
       </div>
 
       <CommandPalette />
-      <QuickCreateModal />
+      
+      {/* Specific Creation Modals */}
+      <CreateTaskModal />
+      <CreateIncidentModal />
+      <CreateProjectModal />
+      <CreateMeetingModal />
+      
       <UserProfileModal />
       
       {/* Global Entity Modals */}

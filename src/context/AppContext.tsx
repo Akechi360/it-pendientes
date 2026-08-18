@@ -52,10 +52,14 @@ interface AppContextType {
   // Modals & Panels
   isCommandPaletteOpen: boolean;
   setIsCommandPaletteOpen: (open: boolean) => void;
-  isQuickCreateOpen: boolean;
-  setIsQuickCreateOpen: (open: boolean) => void;
-  quickCreateType: QuickCreateType;
-  openQuickCreate: (type: QuickCreateType) => void;
+  isCreateTaskOpen: boolean;
+  setIsCreateTaskOpen: (open: boolean) => void;
+  isCreateProjectOpen: boolean;
+  setIsCreateProjectOpen: (open: boolean) => void;
+  isCreateIncidentOpen: boolean;
+  setIsCreateIncidentOpen: (open: boolean) => void;
+  isCreateMeetingOpen: boolean;
+  setIsCreateMeetingOpen: (open: boolean) => void;
   isProfileOpen: boolean;
   setIsProfileOpen: (open: boolean) => void;
 
@@ -93,8 +97,10 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
   // Modals
   const [isCommandPaletteOpen, setIsCommandPaletteOpen] = useState<boolean>(false);
-  const [isQuickCreateOpen, setIsQuickCreateOpen] = useState<boolean>(false);
-  const [quickCreateType, setQuickCreateType] = useState<QuickCreateType>('task');
+  const [isCreateTaskOpen, setIsCreateTaskOpen] = useState<boolean>(false);
+  const [isCreateProjectOpen, setIsCreateProjectOpen] = useState<boolean>(false);
+  const [isCreateIncidentOpen, setIsCreateIncidentOpen] = useState<boolean>(false);
+  const [isCreateMeetingOpen, setIsCreateMeetingOpen] = useState<boolean>(false);
   const [isProfileOpen, setIsProfileOpen] = useState<boolean>(false);
 
   // Selected Details
@@ -116,33 +122,28 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     setIsDarkTheme((prev) => !prev);
   };
 
-  const openQuickCreate = (type: QuickCreateType) => {
-    setQuickCreateType(type);
-    setIsQuickCreateOpen(true);
-  };
-
   // Keyboard shortcuts listener
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'k') {
         e.preventDefault();
         setIsCommandPaletteOpen((prev) => !prev);
-      } else if (!isQuickCreateOpen && !isCommandPaletteOpen && document.activeElement?.tagName !== 'INPUT' && document.activeElement?.tagName !== 'TEXTAREA') {
+      } else if (!isCreateTaskOpen && !isCreateProjectOpen && !isCreateIncidentOpen && !isCreateMeetingOpen && !isCommandPaletteOpen && document.activeElement?.tagName !== 'INPUT' && document.activeElement?.tagName !== 'TEXTAREA') {
         if (e.key === 'c' || e.key === 'C') {
           e.preventDefault();
-          openQuickCreate('task');
+          setIsCreateTaskOpen(true);
         } else if (e.key === 't' || e.key === 'T') {
           e.preventDefault();
-          openQuickCreate('task');
+          setIsCreateTaskOpen(true);
         } else if (e.key === 'i' || e.key === 'I') {
           e.preventDefault();
-          openQuickCreate('incident');
+          setIsCreateIncidentOpen(true);
         } else if (e.key === 'm' || e.key === 'M') {
           e.preventDefault();
-          openQuickCreate('meeting');
+          setIsCreateMeetingOpen(true);
         } else if (e.key === 'p' || e.key === 'P') {
           e.preventDefault();
-          openQuickCreate('project');
+          setIsCreateProjectOpen(true);
         } else if (e.key === '/') {
           e.preventDefault();
           setIsCommandPaletteOpen(true);
@@ -152,7 +153,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [isQuickCreateOpen, isCommandPaletteOpen]);
+  }, [isCreateTaskOpen, isCreateProjectOpen, isCreateIncidentOpen, isCreateMeetingOpen, isCommandPaletteOpen]);
 
   return (
     <AppContext.Provider
@@ -175,10 +176,14 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         files,
         isCommandPaletteOpen,
         setIsCommandPaletteOpen,
-        isQuickCreateOpen,
-        setIsQuickCreateOpen,
-        quickCreateType,
-        openQuickCreate,
+        isCreateTaskOpen,
+        setIsCreateTaskOpen,
+        isCreateProjectOpen,
+        setIsCreateProjectOpen,
+        isCreateIncidentOpen,
+        setIsCreateIncidentOpen,
+        isCreateMeetingOpen,
+        setIsCreateMeetingOpen,
         isProfileOpen,
         setIsProfileOpen,
         selectedTask,
