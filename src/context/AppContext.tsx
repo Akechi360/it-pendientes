@@ -11,19 +11,7 @@ import {
   NotificationItem,
   FileItem
 } from '../types';
-import {
-  SEED_TASKS,
-  SEED_PROJECTS,
-  SEED_INCIDENTS,
-  SEED_MEETINGS,
-  SEED_DOCUMENTS,
-  SEED_ASSETS,
-  SEED_RENEWALS,
-  SEED_LOGS,
-  SEED_NOTIFICATIONS,
-  SEED_FILES
-} from '../services/seedData';
-import { subscribeCollection } from '../services/supabaseService';
+import { useRealtimeQuery } from '../hooks/useRealtimeQuery';
 
 export type ActiveTab =
   | 'dashboard'
@@ -89,17 +77,17 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const [searchTerm, setSearchTerm] = useState<string>('');
   const [isDarkTheme, setIsDarkTheme] = useState<boolean>(true);
 
-  // Realtime Collections with default fallback to seed data
-  const [tasks, setTasks] = useState<TaskItem[]>([]);
-  const [projects, setProjects] = useState<ProjectItem[]>([]);
-  const [incidents, setIncidents] = useState<IncidentItem[]>([]);
-  const [meetings, setMeetings] = useState<MeetingItem[]>([]);
-  const [documents, setDocuments] = useState<DocumentItem[]>([]);
-  const [assets, setAssets] = useState<AssetItem[]>([]);
-  const [renewals, setRenewals] = useState<RenewalItem[]>([]);
-  const [activityLogs, setActivityLogs] = useState<ActivityLogItem[]>([]);
-  const [notifications, setNotifications] = useState<NotificationItem[]>([]);
-  const [files, setFiles] = useState<FileItem[]>([]);
+  // TanStack Query Realtime Collections
+  const { data: tasks = [] } = useRealtimeQuery<TaskItem>('tasks');
+  const { data: projects = [] } = useRealtimeQuery<ProjectItem>('projects');
+  const { data: incidents = [] } = useRealtimeQuery<IncidentItem>('incidents');
+  const { data: meetings = [] } = useRealtimeQuery<MeetingItem>('meetings');
+  const { data: documents = [] } = useRealtimeQuery<DocumentItem>('documents');
+  const { data: assets = [] } = useRealtimeQuery<AssetItem>('assets');
+  const { data: renewals = [] } = useRealtimeQuery<RenewalItem>('renewals');
+  const { data: activityLogs = [] } = useRealtimeQuery<ActivityLogItem>('activity_logs');
+  const { data: notifications = [] } = useRealtimeQuery<NotificationItem>('notifications');
+  const { data: files = [] } = useRealtimeQuery<FileItem>('files');
 
   // Modals
   const [isCommandPaletteOpen, setIsCommandPaletteOpen] = useState<boolean>(false);
@@ -129,33 +117,6 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     setQuickCreateType(type);
     setIsQuickCreateOpen(true);
   };
-
-  useEffect(() => {
-    // Realtime listeners con fallback a datos semilla
-    const unsubTasks = subscribeCollection<TaskItem>('tasks', setTasks, SEED_TASKS);
-    const unsubProjects = subscribeCollection<ProjectItem>('projects', setProjects, SEED_PROJECTS);
-    const unsubIncidents = subscribeCollection<IncidentItem>('incidents', setIncidents, SEED_INCIDENTS);
-    const unsubMeetings = subscribeCollection<MeetingItem>('meetings', setMeetings, SEED_MEETINGS);
-    const unsubDocs = subscribeCollection<DocumentItem>('documents', setDocuments, SEED_DOCUMENTS);
-    const unsubAssets = subscribeCollection<AssetItem>('assets', setAssets, SEED_ASSETS);
-    const unsubRenewals = subscribeCollection<RenewalItem>('renewals', setRenewals, SEED_RENEWALS);
-    const unsubLogs = subscribeCollection<ActivityLogItem>('activity_logs', setActivityLogs, SEED_LOGS);
-    const unsubNotifs = subscribeCollection<NotificationItem>('notifications', setNotifications, SEED_NOTIFICATIONS);
-    const unsubFiles = subscribeCollection<FileItem>('files', setFiles, SEED_FILES);
-
-    return () => {
-      unsubTasks();
-      unsubProjects();
-      unsubIncidents();
-      unsubMeetings();
-      unsubDocs();
-      unsubAssets();
-      unsubRenewals();
-      unsubLogs();
-      unsubNotifs();
-      unsubFiles();
-    };
-  }, []);
 
   // Keyboard shortcuts listener
   useEffect(() => {
