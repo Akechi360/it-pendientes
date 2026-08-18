@@ -3,6 +3,9 @@ import { Sidebar } from './Sidebar';
 import { Header } from './Header';
 import { CommandPalette } from './CommandPalette';
 import { QuickCreateModal } from './QuickCreateModal';
+import { TaskDetailModal } from '../tasks/TaskDetailModal';
+import { IncidentDetailModal } from '../incidents/IncidentDetailModal';
+import { ProjectDetailModal } from '../projects/ProjectDetailModal';
 import { useApp } from '../../context/AppContext';
 
 import { DashboardView } from '../dashboard/DashboardView';
@@ -44,6 +47,11 @@ export const AppShell: React.FC = () => {
 
       <CommandPalette />
       <QuickCreateModal />
+      
+      {/* Global Entity Modals */}
+      <TaskDetailModal />
+      <IncidentDetailModal />
+      <ProjectDetailModal />
 
       {/* Toast notifications */}
       {toastMessage && (

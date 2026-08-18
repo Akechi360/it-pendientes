@@ -64,10 +64,8 @@ export const PriorityQueue: React.FC = () => {
   const handleItemClick = (item: QueueItem) => {
     if (item.type === 'task') {
       setSelectedTask(item.raw as TaskItem);
-      setActiveTab('tasks');
     } else {
       setSelectedIncident(item.raw as IncidentItem);
-      setActiveTab('incidents');
     }
   };
 

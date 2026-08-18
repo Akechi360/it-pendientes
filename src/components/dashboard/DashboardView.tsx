@@ -5,11 +5,12 @@ import { OperationalAlert } from './widgets/OperationalAlert';
 import { MetricInline } from './widgets/MetricInline';
 import { PriorityQueue } from './widgets/PriorityQueue';
 import { AgendaWidget } from './widgets/AgendaWidget';
-import { IncidentHealthWidget } from './widgets/IncidentHealthWidget';
-import { ProjectStatusWidget } from './widgets/ProjectStatusWidget';
 import { ActivityFeed } from './widgets/ActivityFeed';
-import { RenewalRiskWidget } from './widgets/RenewalRiskWidget';
 import { DashboardSection } from './widgets/DashboardSection';
+
+import { TasksStatusChart } from './charts/TasksStatusChart';
+import { WorkloadBarChart } from './charts/WorkloadBarChart';
+import { IncidentTrendArea } from './charts/IncidentTrendArea';
 
 import { 
   CheckSquare, 
@@ -17,8 +18,10 @@ import {
   FolderKanban, 
   RefreshCw, 
   Calendar,
-  Activity,
-  History
+  History,
+  PieChart,
+  BarChart3,
+  TrendingUp
 } from 'lucide-react';
 
 export const DashboardView: React.FC = () => {
@@ -37,7 +40,6 @@ export const DashboardView: React.FC = () => {
       
       {/* 
         A. Cabecera Operacional Compacta
-        Saludo, fecha y OperationalAlert basado en datos reales
       */}
       <div className="flex flex-col gap-4">
         <div className="flex items-center justify-between">
@@ -86,18 +88,27 @@ export const DashboardView: React.FC = () => {
       </div>
 
       {/* 
-        C. Primera Fila: Prioridad Operativa y Agenda
+        C. Gráficas Analíticas (NUEVO RECHARTS)
       */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <div className="lg:col-span-2">
-          <DashboardSection 
-            title="Prioridad Operativa" 
-            icon={<CheckSquare className="w-4 h-4" />}
-          >
-            <PriorityQueue />
-          </DashboardSection>
-        </div>
-        <div>
+        <DashboardSection title="Distribución de Tareas" icon={<PieChart className="w-4 h-4" />}>
+          <TasksStatusChart />
+        </DashboardSection>
+
+        <DashboardSection title="Tendencia de Incidencias (7 días)" icon={<TrendingUp className="w-4 h-4" />}>
+          <IncidentTrendArea />
+        </DashboardSection>
+
+        <DashboardSection title="Carga de Trabajo IT" icon={<BarChart3 className="w-4 h-4" />}>
+          <WorkloadBarChart />
+        </DashboardSection>
+      </div>
+
+      {/* 
+        D. Operativa Inmediata (Prioridad, Agenda y Actividad)
+      */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div className="lg:col-span-1">
           <DashboardSection 
             title="Agenda de Hoy" 
             icon={<Calendar className="w-4 h-4" />}
@@ -107,53 +118,28 @@ export const DashboardView: React.FC = () => {
             <AgendaWidget />
           </DashboardSection>
         </div>
+        
+        <div className="lg:col-span-1">
+          <DashboardSection 
+            title="Prioridad Operativa" 
+            icon={<CheckSquare className="w-4 h-4" />}
+          >
+            <PriorityQueue />
+          </DashboardSection>
+        </div>
+        
+        <div className="lg:col-span-1">
+          <DashboardSection 
+            title="Actividad Reciente" 
+            icon={<History className="w-4 h-4" />}
+            actionText="Ver Bitácora"
+            onAction={() => setActiveTab('audit')}
+          >
+            <ActivityFeed />
+          </DashboardSection>
+        </div>
       </div>
 
-      {/* 
-        D. Segunda Fila: Incidencias y Proyectos
-      */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <DashboardSection 
-          title="Salud de Incidencias" 
-          icon={<Activity className="w-4 h-4" />}
-          actionText="Ver Incidencias"
-          onAction={() => setActiveTab('incidents')}
-        >
-          <IncidentHealthWidget />
-        </DashboardSection>
-
-        <DashboardSection 
-          title="Progreso de Proyectos" 
-          icon={<FolderKanban className="w-4 h-4" />}
-          actionText="Ver Proyectos"
-          onAction={() => setActiveTab('projects')}
-        >
-          <ProjectStatusWidget />
-        </DashboardSection>
-      </div>
-
-      {/* 
-        E. Tercera Fila: Actividad Reciente y Renovaciones
-      */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <DashboardSection 
-          title="Actividad Reciente" 
-          icon={<History className="w-4 h-4" />}
-          actionText="Ver Bitácora"
-          onAction={() => setActiveTab('audit')}
-        >
-          <ActivityFeed />
-        </DashboardSection>
-
-        <DashboardSection 
-          title="Riesgo de Renovación" 
-          icon={<RefreshCw className="w-4 h-4" />}
-          actionText="Ver Renovaciones"
-          onAction={() => setActiveTab('renewals')}
-        >
-          <RenewalRiskWidget />
-        </DashboardSection>
-      </div>
     </div>
   );
 };

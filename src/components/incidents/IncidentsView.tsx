@@ -5,7 +5,7 @@ import {
   ChevronRight
 } from 'lucide-react';
 import { useApp } from '../../context/AppContext';
-import { IncidentDetailModal } from './IncidentDetailModal';
+
 import { EntityPageHeader } from '../shared/EntityPageHeader';
 import { StatusBadge } from '../shared/StatusBadge';
 import { PriorityIndicator } from '../shared/PriorityIndicator';
@@ -35,8 +35,6 @@ export const IncidentsView: React.FC = () => {
 
   return (
     <div className="space-y-6 pb-12 animate-in fade-in duration-300">
-      <IncidentDetailModal />
-
       <EntityPageHeader 
         icon={<LifeBuoy className="w-5 h-5" />}
         title="Helpdesk & Incidencias Técnicas"

@@ -5,7 +5,7 @@ import {
   AlertTriangle
 } from 'lucide-react';
 import { useApp } from '../../context/AppContext';
-import { ProjectDetailModal } from './ProjectDetailModal';
+
 import { EntityPageHeader } from '../shared/EntityPageHeader';
 import { StatusBadge } from '../shared/StatusBadge';
 import { AssigneeAvatar } from '../shared/AssigneeAvatar';
@@ -18,8 +18,6 @@ export const ProjectsView: React.FC = () => {
 
   return (
     <div className="space-y-6 pb-12 animate-in fade-in duration-300">
-      <ProjectDetailModal />
-
       <EntityPageHeader 
         icon={<FolderKanban className="w-5 h-5" />}
         title="Proyectos de Infraestructura & Desarrollo"

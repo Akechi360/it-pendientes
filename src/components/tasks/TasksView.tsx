@@ -37,8 +37,6 @@ export const TasksView: React.FC = () => {
 
   return (
     <div className="space-y-6 pb-12 animate-in fade-in duration-300">
-      <TaskDetailModal />
-
       <EntityPageHeader 
         icon={<CheckSquare className="w-5 h-5" />}
         title="Tareas & Pendientes"
