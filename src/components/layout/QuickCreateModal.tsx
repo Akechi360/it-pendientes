@@ -16,6 +16,13 @@ export const QuickCreateModal: React.FC = () => {
   const [type, setType] = useState<QuickCreateType>(quickCreateType);
   const [loading, setLoading] = useState(false);
 
+  // Sync internal state when context changes
+  React.useEffect(() => {
+    if (isQuickCreateOpen) {
+      setType(quickCreateType);
+    }
+  }, [isQuickCreateOpen, quickCreateType]);
+
   // Common State
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
