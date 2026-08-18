@@ -115,16 +115,18 @@ export function subscribeCollection<T>(
   (async () => {
     try {
       const { data, error } = await supabase.from(tableName).select('*');
-      if (error || !data || data.length === 0) {
-        console.warn(`[Supabase] Utilizando respaldo demo para ${tableName}:`, error?.message || 'Tabla vacía o inaccesible');
-        callback(fallbackData);
-      } else {
+      if (error) {
+        console.warn(`[Supabase] Error fetch para ${tableName}:`, error.message);
+        callback([]); // En producción no inyectamos mock data si hay error
+      } else if (data) {
         const items = data.map((row) => toCamel<T>(row as Record<string, unknown>));
         callback(items);
+      } else {
+        callback([]);
       }
     } catch (err) {
       console.warn(`[Supabase] Excepción en fetch para ${tableName}:`, err);
-      callback(fallbackData);
+      callback([]);
     }
   })();
 
@@ -147,8 +149,7 @@ export function subscribeCollection<T>(
     )
     .subscribe((status) => {
       if (status === 'CHANNEL_ERROR') {
-        console.warn(`[Supabase] Error en canal realtime para ${tableName}.`);
-        callback(fallbackData);
+        console.warn(`[Supabase] Error en canal realtime para ${tableName}. No se inyectan datos de prueba.`);
       }
     });
 
