@@ -11,7 +11,7 @@ import { AssigneeAvatar } from '../shared/AssigneeAvatar';
 import { DueDateIndicator } from '../shared/DueDateIndicator';
 
 export const RenewalsView: React.FC = () => {
-  const { renewals, openQuickCreate } = useApp();
+  const { renewals, toast } = useApp();
   const [searchQuery, setSearchQuery] = useState('');
 
   const filteredRenewals = renewals.filter((r) => r.title.toLowerCase().includes(searchQuery.toLowerCase()) || r.vendor.toLowerCase().includes(searchQuery.toLowerCase()));
@@ -23,7 +23,7 @@ export const RenewalsView: React.FC = () => {
         title="Control de Compras & Renovaciones"
         description="Gestión de vencimientos de licencias, dominios, certificados SSL, garantías y suscripciones de software."
         actionLabel="Registrar Renovación"
-        onAction={() => openQuickCreate('renewal')}
+        onAction={() => toast('Modal de renovaciones en construcción', 'info')}
       />
 
       {/* Filter Bar */}

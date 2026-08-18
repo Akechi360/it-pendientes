@@ -11,7 +11,7 @@ import { StatusBadge } from '../shared/StatusBadge';
 import { AssigneeAvatar } from '../shared/AssigneeAvatar';
 
 export const ProjectsView: React.FC = () => {
-  const { projects, openQuickCreate, setSelectedProject } = useApp();
+  const { projects, setIsCreateProjectOpen, setSelectedProject } = useApp();
   const [searchQuery, setSearchQuery] = useState('');
 
   const filteredProjects = projects.filter((p) => p.name.toLowerCase().includes(searchQuery.toLowerCase()) || p.id.toLowerCase().includes(searchQuery.toLowerCase()));
@@ -23,7 +23,7 @@ export const ProjectsView: React.FC = () => {
         title="Proyectos de Infraestructura & Desarrollo"
         description="Gestión de iniciativas estratégicas, migraciones, proyectos de redes y ciberseguridad."
         actionLabel="Nuevo Proyecto"
-        onAction={() => openQuickCreate('project')}
+        onAction={() => setIsCreateProjectOpen(true)}
       />
 
       {/* Filter Bar */}

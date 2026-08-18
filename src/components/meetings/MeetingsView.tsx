@@ -16,7 +16,7 @@ import { formatDate } from '../../utils/dateUtils';
 import { StatusBadge } from '../shared/StatusBadge';
 
 export const MeetingsView: React.FC = () => {
-  const { meetings, openQuickCreate, toast } = useApp();
+  const { meetings, setIsCreateMeetingOpen, toast } = useApp();
   const [searchQuery, setSearchQuery] = useState('');
 
   const filteredMeetings = meetings.filter((m) => m.title.toLowerCase().includes(searchQuery.toLowerCase()) || m.id.toLowerCase().includes(searchQuery.toLowerCase()));
@@ -64,7 +64,7 @@ export const MeetingsView: React.FC = () => {
         title="Reuniones IT, Minutas & Compromisos"
         description="Registro de sesiones técnicas, comité de cambios (CAB) y asignación directa de acuerdos a tareas."
         actionLabel="Programar Reunión"
-        onAction={() => openQuickCreate('meeting')}
+        onAction={() => setIsCreateMeetingOpen(true)}
       />
 
       {/* Filter Bar */}

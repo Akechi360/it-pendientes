@@ -24,7 +24,10 @@ export const CommandPalette: React.FC = () => {
     setSelectedTask,
     setSelectedIncident,
     setSelectedProject,
-    openQuickCreate,
+    setIsCreateTaskOpen,
+    setIsCreateIncidentOpen,
+    setIsCreateProjectOpen,
+    setIsCreateMeetingOpen,
   } = useApp();
 
   const [query, setQuery] = useState('');
@@ -70,8 +73,8 @@ export const CommandPalette: React.FC = () => {
               <div className="grid grid-cols-2 gap-2">
                 <button
                   onClick={() => {
-                    handleClose();
-                    openQuickCreate('task');
+                    setIsCommandPaletteOpen(false);
+                    setIsCreateTaskOpen(true);
                   }}
                   className="flex items-center justify-between px-3 py-2 rounded-lg bg-surface border border-border-subtle hover:bg-surface-hover text-xs font-medium text-content-secondary hover:text-content-primary transition-colors"
                 >
@@ -82,8 +85,8 @@ export const CommandPalette: React.FC = () => {
                 </button>
                 <button
                   onClick={() => {
-                    handleClose();
-                    openQuickCreate('incident');
+                    setIsCommandPaletteOpen(false);
+                    setIsCreateIncidentOpen(true);
                   }}
                   className="flex items-center justify-between px-3 py-2 rounded-lg bg-surface border border-border-subtle hover:bg-surface-hover text-xs font-medium text-content-secondary hover:text-content-primary transition-colors"
                 >

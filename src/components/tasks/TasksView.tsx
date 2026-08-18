@@ -17,7 +17,7 @@ import { DueDateIndicator } from '../shared/DueDateIndicator';
 import { AssigneeAvatar } from '../shared/AssigneeAvatar';
 
 export const TasksView: React.FC = () => {
-  const { tasks, openQuickCreate, setSelectedTask } = useApp();
+  const { tasks, setIsCreateTaskOpen, setSelectedTask } = useApp();
 
   const [viewMode, setViewMode] = useState<'lista' | 'kanban' | 'tabla'>('tabla');
   const [searchQuery, setSearchQuery] = useState('');
@@ -42,7 +42,7 @@ export const TasksView: React.FC = () => {
         title="Tareas & Pendientes"
         description="Gestión completa de actividades diarias, semanales, recurrentes y focales del departamento."
         actionLabel="Nueva Tarea"
-        onAction={() => openQuickCreate('task')}
+        onAction={() => setIsCreateTaskOpen(true)}
       />
 
       {/* Filter Bar */}

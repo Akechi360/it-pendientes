@@ -13,7 +13,7 @@ import { useApp } from '../../context/AppContext';
 import { EntityPageHeader } from '../shared/EntityPageHeader';
 
 export const CalendarView: React.FC = () => {
-  const { tasks, meetings, renewals, openQuickCreate, setSelectedTask } = useApp();
+  const { tasks, meetings, renewals, setIsCreateMeetingOpen, setSelectedTask } = useApp();
   const [currentDate, setCurrentDate] = useState(new Date());
 
   const year = currentDate.getFullYear();
@@ -46,7 +46,7 @@ export const CalendarView: React.FC = () => {
         title="Calendario Central de IT"
         description="Programación de vencimientos, reuniones, mantenimientos y ventanas de despliegue."
         actionLabel="Programar Evento"
-        onAction={() => openQuickCreate('meeting')}
+        onAction={() => setIsCreateMeetingOpen(true)}
       />
 
       {/* Month Navigator */}

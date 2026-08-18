@@ -14,7 +14,7 @@ import { AssigneeAvatar } from '../shared/AssigneeAvatar';
 import { formatDate } from '../../utils/dateUtils';
 
 export const IncidentsView: React.FC = () => {
-  const { incidents, openQuickCreate, setSelectedIncident } = useApp();
+  const { incidents, setIsCreateIncidentOpen, setSelectedIncident } = useApp();
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedStatus, setSelectedStatus] = useState<string>('activas');
 
@@ -40,7 +40,7 @@ export const IncidentsView: React.FC = () => {
         title="Helpdesk & Incidencias Técnicas"
         description="Registro, diagnóstico y resolución de fallas de infraestructura, red, equipos y aplicaciones."
         actionLabel="Nueva Incidencia"
-        onAction={() => openQuickCreate('incident')}
+        onAction={() => setIsCreateIncidentOpen(true)}
       />
 
       {/* Filter Bar */}
