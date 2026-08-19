@@ -182,7 +182,7 @@ export async function logActivity(
     entityTitle,
     details,
     timestamp: new Date().toISOString(),
-    organizationId: DEFAULT_ORG_ID,
+    organizationId: 'org_sistemas_main',
   };
   try {
     await supabase
