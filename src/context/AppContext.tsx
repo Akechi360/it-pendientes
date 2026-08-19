@@ -122,6 +122,15 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     setIsDarkTheme((prev) => !prev);
   };
 
+  // Sync theme with document class
+  useEffect(() => {
+    if (isDarkTheme) {
+      document.documentElement.classList.add('dark');
+    } else {
+      document.documentElement.classList.remove('dark');
+    }
+  }, [isDarkTheme]);
+
   // Keyboard shortcuts listener
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -150,10 +159,48 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         }
       }
     };
-
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [isCreateTaskOpen, isCreateProjectOpen, isCreateIncidentOpen, isCreateMeetingOpen, isCommandPaletteOpen]);
+
+  // Request Notification permission
+  useEffect(() => {
+    if ('Notification' in window && Notification.permission === 'default') {
+      Notification.requestPermission();
+    }
+  }, []);
+
+  // Watch for new notifications to trigger Push
+  useEffect(() => {
+    if (!notifications.length) return;
+    
+    // Check the latest notification
+    const latestNotification = [...notifications].sort((a, b) => 
+      new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+    )[0];
+
+    // If it's very recent (e.g. last 10 seconds) and not read, trigger push
+    const isRecent = (new Date().getTime() - new Date(latestNotification.createdAt).getTime()) < 10000;
+    
+    if (isRecent && !latestNotification.isRead && 'Notification' in window && Notification.permission === 'granted') {
+      if ('serviceWorker' in navigator && navigator.serviceWorker.controller) {
+        navigator.serviceWorker.controller.postMessage({
+          type: 'SHOW_NOTIFICATION',
+          payload: {
+            title: latestNotification.title,
+            body: latestNotification.message,
+            url: '/'
+          }
+        });
+      } else {
+        // Fallback for desktop browsers without SW active yet
+        new Notification(latestNotification.title, {
+          body: latestNotification.message,
+          icon: '/icon.svg'
+        });
+      }
+    }
+  }, [notifications]);
 
   return (
     <AppContext.Provider

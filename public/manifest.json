@@ -1,0 +1,17 @@
+{
+  "name": "IT App Sistemas",
+  "short_name": "IT Portal",
+  "description": "Portal de gestión IT y Sistemas",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#0a0a0a",
+  "theme_color": "#06b6d4",
+  "icons": [
+    {
+      "src": "/icon.svg",
+      "sizes": "192x192 512x512",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}
