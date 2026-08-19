@@ -73,7 +73,7 @@ export const CommandPalette: React.FC = () => {
           {query.trim() === '' && (
             <div>
               <p className="px-2 mb-2 text-[10px] font-bold text-content-muted uppercase tracking-wider">Acciones Rápidas</p>
-              <div className="grid grid-cols-2 gap-2">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                 <button
                   onClick={() => {
                     setIsCommandPaletteOpen(false);

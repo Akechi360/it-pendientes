@@ -37,18 +37,19 @@ export const Header: React.FC = () => {
   const unreadCount = notifications.filter((n) => !n.isRead).length;
 
   return (
-    <header className="sticky top-0 z-20 flex items-center justify-between px-6 py-3 border-b border-border-subtle bg-canvas/80 backdrop-blur-md">
+    <header className="sticky top-0 z-20 flex items-center justify-between px-3 md:px-6 py-3 border-b border-border-subtle bg-canvas/80 backdrop-blur-md gap-3">
       {/* Search Bar / Command Palette Trigger */}
       <div className="flex items-center gap-4 flex-1 max-w-xl">
         <button
           onClick={() => setIsCommandPaletteOpen(true)}
           className="w-full flex items-center justify-between px-3 py-2 rounded-lg border border-border-subtle bg-surface hover:bg-surface-hover text-sm font-normal text-content-secondary transition-all"
         >
-          <div className="flex items-center gap-2.5">
-            <Search className="w-4 h-4 text-content-muted" />
-            <span>Buscar tareas, incidencias, documentación...</span>
+          <div className="flex items-center gap-2.5 overflow-hidden">
+            <Search className="w-4 h-4 text-content-muted shrink-0" />
+            <span className="truncate hidden sm:inline">Buscar tareas, incidencias, documentación...</span>
+            <span className="truncate sm:hidden">Buscar...</span>
           </div>
-          <div className="flex items-center gap-1 text-[11px] font-mono px-1.5 py-0.5 rounded bg-surface-raised border border-border-subtle text-content-muted">
+          <div className="hidden sm:flex items-center gap-1 text-[11px] font-mono px-1.5 py-0.5 rounded bg-surface-raised border border-border-subtle text-content-muted shrink-0 ml-2">
             <Command className="w-3 h-3" />
             <span>K</span>
           </div>
@@ -56,7 +57,7 @@ export const Header: React.FC = () => {
       </div>
 
       {/* Right Header Actions */}
-      <div className="flex items-center gap-3">
+      <div className="flex items-center gap-2 md:gap-3 shrink-0">
         {/* Quick Create Menu */}
         <div className="relative">
           <motion.button

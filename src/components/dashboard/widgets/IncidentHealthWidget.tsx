@@ -19,7 +19,7 @@ export const IncidentHealthWidget: React.FC = () => {
 
   return (
     <div className="space-y-4 mt-2">
-      <div className="grid grid-cols-3 gap-2">
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
         <div className="p-3 rounded-lg bg-canvas border border-border-subtle text-center">
           <span className="block text-2xl font-bold text-rose-400">{critical.length}</span>
           <span className="text-[10px] uppercase font-bold text-content-muted tracking-wider">Críticas</span>

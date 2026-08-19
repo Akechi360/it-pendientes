@@ -97,7 +97,7 @@ export const CreateProjectModal: React.FC = () => {
             <textarea rows={3} value={description} onChange={(e) => setDescription(e.target.value)} placeholder="Detalles principales del proyecto..." className="w-full px-3.5 py-2 rounded-lg bg-surface-raised border border-border-subtle text-content-primary placeholder-content-muted focus:outline-none focus:border-emerald-500/50 text-xs resize-none" />
           </div>
 
-          <div className="grid grid-cols-3 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
             <div>
               <label className="block text-[10px] font-bold text-content-muted uppercase tracking-wider mb-1.5">Prioridad Estratégica</label>
               <select value={priority} onChange={(e) => setPriority(e.target.value as any)} className="w-full px-3 py-2 rounded-lg bg-surface-raised border border-border-subtle text-content-primary text-xs focus:outline-none focus:border-emerald-500/50">
