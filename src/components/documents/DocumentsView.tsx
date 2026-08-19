@@ -3,11 +3,12 @@ import {
   FileText,
   Search,
   Edit,
-  Save
+  Save,
+  Trash2
 } from 'lucide-react';
 import { useApp } from '../../context/AppContext';
 import { useAuth } from '../../context/AuthContext';
-import { createDocument, updateDocument, logActivity } from '../../services/supabaseService';
+import { createDocument, updateDocument, deleteDocument, logActivity } from '../../services/supabaseService';
 import { DocumentItem, DocumentSpace } from '../../types';
 import { EntityPageHeader } from '../shared/EntityPageHeader';
 import { formatDate } from '../../utils/dateUtils';
@@ -96,6 +97,25 @@ export const DocumentsView: React.FC = () => {
       toast('Documento actualizado correctamente', 'success');
     } catch (err) {
       toast('Error al guardar documento', 'error');
+    }
+  };
+
+  const handleDeleteDoc = async () => {
+    if (!selectedDoc || !currentUser) return;
+    if (currentUser.role !== 'admin') {
+      toast('No tienes permisos para eliminar documentación', 'error');
+      return;
+    }
+    
+    if (confirm(`¿Estás seguro de que deseas eliminar el documento "${selectedDoc.title}"?`)) {
+      try {
+        await deleteDocument('documents', selectedDoc.id);
+        await logActivity(currentUser.uid, currentUser.displayName, currentUser.role, 'Eliminación de Documento', 'Documentación', selectedDoc.id, selectedDoc.title, 'Documento eliminado de la Base de Conocimiento.');
+        setSelectedDoc(null);
+        toast('Documento eliminado correctamente', 'success');
+      } catch (err) {
+        toast('Error al eliminar documento', 'error');
+      }
     }
   };
 
@@ -202,7 +222,7 @@ export const DocumentsView: React.FC = () => {
                   )}
                 </div>
 
-                <div className="shrink-0 self-start">
+                <div className="shrink-0 self-start flex gap-2">
                   {isEditing ? (
                     <button
                       onClick={handleSaveDoc}
@@ -211,12 +231,23 @@ export const DocumentsView: React.FC = () => {
                       <Save className="w-3.5 h-3.5" /> Guardar
                     </button>
                   ) : (
-                    <button
-                      onClick={() => setIsEditing(true)}
-                      className="flex items-center gap-1.5 px-3.5 py-2 rounded-lg bg-surface-raised border border-border-subtle hover:bg-surface-hover text-content-primary text-xs font-semibold transition-colors"
-                    >
-                      <Edit className="w-3.5 h-3.5" /> Editar
-                    </button>
+                    <>
+                      <button
+                        onClick={() => setIsEditing(true)}
+                        className="flex items-center gap-1.5 px-3.5 py-2 rounded-lg bg-surface-raised border border-border-subtle hover:bg-surface-hover text-content-primary text-xs font-semibold transition-colors"
+                      >
+                        <Edit className="w-3.5 h-3.5" /> Editar
+                      </button>
+                      {currentUser?.role === 'admin' && (
+                        <button
+                          onClick={handleDeleteDoc}
+                          className="flex items-center gap-1.5 px-3.5 py-2 rounded-lg border border-border-subtle hover:border-rose-500/30 hover:bg-rose-500/10 text-content-secondary hover:text-rose-400 text-xs font-semibold transition-colors"
+                          title="Eliminar documento"
+                        >
+                          <Trash2 className="w-3.5 h-3.5" /> Eliminar
+                        </button>
+                      )}
+                    </>
                   )}
                 </div>
               </div>
