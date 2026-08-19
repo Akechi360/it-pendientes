@@ -91,12 +91,14 @@ export const Header: React.FC = () => {
                   >
                     <LifeBuoy className="w-4 h-4 text-amber-400" /> Incidencia
                   </button>
-                  <button
-                    onClick={() => { setShowCreateMenu(false); setIsCreateProjectOpen(true); }}
-                    className="w-full flex items-center gap-2.5 text-left px-3 py-2 text-sm text-content-primary hover:bg-surface-hover rounded-lg transition-colors"
-                  >
-                    <FolderKanban className="w-4 h-4 text-emerald-400" /> Proyecto
-                  </button>
+                  {currentUser?.role === 'admin' && (
+                    <button
+                      onClick={() => { setShowCreateMenu(false); setIsCreateProjectOpen(true); }}
+                      className="w-full flex items-center gap-2.5 text-left px-3 py-2 text-sm text-content-primary hover:bg-surface-hover rounded-lg transition-colors"
+                    >
+                      <FolderKanban className="w-4 h-4 text-emerald-400" /> Proyecto
+                    </button>
+                  )}
                 </div>
               </motion.div>
             )}

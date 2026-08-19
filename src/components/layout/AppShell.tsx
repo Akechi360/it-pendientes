@@ -26,8 +26,11 @@ import { RenewalsView } from '../renewals/RenewalsView';
 import { FilesView } from '../files/FilesView';
 import { AuditLogView } from '../audit/AuditLogView';
 
+import { useAuth } from '../../context/AuthContext';
+
 export const AppShell: React.FC = () => {
   const { activeTab, toastMessage } = useApp();
+  const { isAdmin } = useAuth();
 
   return (
     <div className="min-h-screen font-sans flex transition-colors bg-canvas text-content-primary">
@@ -39,7 +42,7 @@ export const AppShell: React.FC = () => {
         <main className="flex-1 overflow-y-auto p-6 lg:p-8 max-w-[1920px] w-full mx-auto custom-scrollbar">
           {activeTab === 'dashboard'  && <DashboardView />}
           {activeTab === 'tasks'      && <TasksView />}
-          {activeTab === 'projects'   && <ProjectsView />}
+          {activeTab === 'projects'   && isAdmin && <ProjectsView />}
           {activeTab === 'incidents'  && <IncidentsView />}
           {activeTab === 'meetings'   && <MeetingsView />}
           {activeTab === 'calendar'   && <CalendarView />}
@@ -47,7 +50,20 @@ export const AppShell: React.FC = () => {
           {activeTab === 'assets'     && <AssetsView />}
           {activeTab === 'renewals'   && <RenewalsView />}
           {activeTab === 'files'      && <FilesView />}
-          {activeTab === 'audit'      && <AuditLogView />}
+          {activeTab === 'audit'      && isAdmin && <AuditLogView />}
+          
+          {/* Fallback para analistas que intentan entrar a URLs protegidas por tab state */}
+          {(activeTab === 'projects' || activeTab === 'audit') && !isAdmin && (
+            <div className="h-full flex items-center justify-center">
+              <div className="text-center p-8 rounded-2xl border border-border-subtle bg-surface">
+                <AlertTriangle className="w-12 h-12 text-rose-500 mx-auto mb-4" />
+                <h3 className="text-lg font-bold text-content-primary mb-2">Acceso Denegado</h3>
+                <p className="text-sm text-content-secondary max-w-md">
+                  Tu rol de Analista IT no tiene permisos para visualizar este módulo.
+                </p>
+              </div>
+            </div>
+          )}
         </main>
       </div>
 

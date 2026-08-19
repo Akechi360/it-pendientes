@@ -49,7 +49,7 @@ export const Sidebar: React.FC = () => {
       items: [
         { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
         { id: 'tasks', label: 'Tareas & Pendientes', icon: CheckSquare, badge: pendingTasksCount },
-        { id: 'projects', label: 'Proyectos IT', icon: FolderKanban },
+        ...(isAdmin ? [{ id: 'projects', label: 'Proyectos IT', icon: FolderKanban }] : []),
         { id: 'incidents', label: 'Incidencias', icon: LifeBuoy, badge: openIncidentsCount, badgeColor: 'text-rose-400 bg-rose-500/10' },
       ]
     },
@@ -69,12 +69,12 @@ export const Sidebar: React.FC = () => {
         { id: 'files', label: 'Archivos', icon: FolderArchive },
       ]
     },
-    {
+    ...(isAdmin ? [{
       title: 'Administración',
       items: [
         { id: 'audit', label: 'Auditoría', icon: History }
       ]
-    }
+    }] : [])
   ];
 
   const SidebarContent = () => (

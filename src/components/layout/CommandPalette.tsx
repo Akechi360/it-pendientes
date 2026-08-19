@@ -10,6 +10,7 @@ import {
   PlusCircle
 } from 'lucide-react';
 import { useApp } from '../../context/AppContext';
+import { useAuth } from '../../context/AuthContext';
 
 export const CommandPalette: React.FC = () => {
   const {
@@ -29,6 +30,8 @@ export const CommandPalette: React.FC = () => {
     setIsCreateProjectOpen,
     setIsCreateMeetingOpen,
   } = useApp();
+
+  const { isAdmin } = useAuth();
 
   const [query, setQuery] = useState('');
 
@@ -160,7 +163,7 @@ export const CommandPalette: React.FC = () => {
           )}
 
           {/* Projects Results */}
-          {filteredProjects.length > 0 && (
+          {isAdmin && filteredProjects.length > 0 && (
             <div>
               <p className="px-2 mb-1 text-[10px] font-bold text-content-muted uppercase tracking-wider flex items-center gap-2">
                 <FolderKanban className="w-3.5 h-3.5 text-emerald-400" /> Proyectos ({filteredProjects.length})
