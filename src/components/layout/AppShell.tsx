@@ -1,4 +1,6 @@
 import React from 'react';
+import { AnimatePresence, motion } from 'motion/react';
+import { CheckCircle2, AlertCircle, AlertTriangle, Info } from 'lucide-react';
 import { Sidebar } from './Sidebar';
 import { Header } from './Header';
 import { CommandPalette } from './CommandPalette';
@@ -65,19 +67,31 @@ export const AppShell: React.FC = () => {
       <ProjectDetailModal />
 
       {/* Toast notifications */}
-      {toastMessage && (
-        <div className="fixed bottom-6 right-6 z-50 animate-in slide-in-from-bottom-5 duration-300">
-          <div className={`px-4 py-3 rounded-xl shadow-2xl border flex items-center gap-3 font-semibold text-xs font-mono
-            ${toastMessage.type === 'success' ? 'bg-surface border-emerald-500/50 text-emerald-400' :
-              toastMessage.type === 'error'   ? 'bg-surface border-rose-500/50 text-rose-400' :
-              toastMessage.type === 'warning' ? 'bg-surface border-amber-500/50 text-amber-400' :
-              'bg-surface border-cyan-500/50 text-cyan-400'
-            }`}
+      <AnimatePresence>
+        {toastMessage && (
+          <motion.div
+            initial={{ opacity: 0, y: 24, scale: 0.95 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: 12, scale: 0.95 }}
+            transition={{ type: 'spring', stiffness: 400, damping: 30 }}
+            className="fixed bottom-6 right-6 z-50"
           >
-            <span>{toastMessage.text}</span>
-          </div>
-        </div>
-      )}
+            <div className={`px-4 py-3 rounded-xl shadow-2xl border backdrop-blur-md flex items-center gap-3 font-semibold text-xs
+              ${toastMessage.type === 'success' ? 'bg-surface/95 border-emerald-500/40 text-emerald-400' :
+                toastMessage.type === 'error'   ? 'bg-surface/95 border-rose-500/40 text-rose-400' :
+                toastMessage.type === 'warning' ? 'bg-surface/95 border-amber-500/40 text-amber-400' :
+                'bg-surface/95 border-cyan-500/40 text-cyan-400'
+              }`}
+            >
+              {toastMessage.type === 'success' && <CheckCircle2 className="w-4 h-4 shrink-0" />}
+              {toastMessage.type === 'error' && <AlertCircle className="w-4 h-4 shrink-0" />}
+              {toastMessage.type === 'warning' && <AlertTriangle className="w-4 h-4 shrink-0" />}
+              {toastMessage.type !== 'success' && toastMessage.type !== 'error' && toastMessage.type !== 'warning' && <Info className="w-4 h-4 shrink-0" />}
+              <span className="font-mono">{toastMessage.text}</span>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 };

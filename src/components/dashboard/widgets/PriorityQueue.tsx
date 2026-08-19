@@ -2,7 +2,9 @@ import React from 'react';
 import { useApp } from '../../../context/AppContext';
 import { CheckSquare, LifeBuoy, Clock } from 'lucide-react';
 import { DashboardEmptyState } from './DashboardEmptyState';
-import { TaskItem, IncidentItem } from '../../../types';
+import { PriorityIndicator } from '../../shared/PriorityIndicator';
+import { AssigneeAvatar } from '../../shared/AssigneeAvatar';
+import { TaskItem, IncidentItem, PriorityLevel } from '../../../types';
 
 type QueueItem = {
   id: string;
@@ -69,36 +71,34 @@ export const PriorityQueue: React.FC = () => {
     }
   };
 
+  const accentClass = (priority: string) =>
+    priority === 'critica' ? 'bg-rose-500' : priority === 'alta' ? 'bg-amber-500' : 'bg-border-subtle';
+
   return (
     <div className="space-y-2 mt-1">
       {topQueue.map((item) => (
-        <div 
+        <div
           key={`${item.type}-${item.id}`}
           onClick={() => handleItemClick(item)}
-          className="flex flex-col sm:flex-row sm:items-center justify-between p-3 rounded-xl bg-canvas border border-border-subtle hover:border-cyan-500/40 cursor-pointer transition-colors gap-3"
+          className="relative flex flex-col sm:flex-row sm:items-center justify-between p-3 pl-4 rounded-xl bg-canvas border border-border-subtle hover:border-cyan-500/40 hover:-translate-y-0.5 cursor-pointer transition-all gap-3 overflow-hidden"
         >
+          <span className={`absolute left-0 top-0 bottom-0 w-1 ${accentClass(item.priority)}`} />
           <div className="flex items-start gap-3 overflow-hidden">
-            <div className={`p-1.5 rounded-md mt-0.5 shrink-0 ${
+            <div className={`flex items-center justify-center w-8 h-8 rounded-lg mt-0.5 shrink-0 ${
               item.type === 'task' ? 'bg-blue-500/10 text-blue-400' : 'bg-amber-500/10 text-amber-400'
             }`}>
               {item.type === 'task' ? <CheckSquare className="w-4 h-4" /> : <LifeBuoy className="w-4 h-4" />}
             </div>
             <div className="overflow-hidden">
-              <div className="flex items-center gap-2 mb-0.5">
+              <div className="flex items-center gap-2 mb-1">
                 <span className="font-mono text-[10px] text-content-muted">{item.id}</span>
-                <span className={`text-[9px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded ${
-                  item.priority === 'critica' ? 'bg-rose-500/10 text-rose-400 border border-rose-500/20' :
-                  item.priority === 'alta' ? 'bg-amber-500/10 text-amber-400 border border-amber-500/20' :
-                  'bg-surface-raised border border-border-subtle text-content-secondary'
-                }`}>
-                  {item.priority}
-                </span>
+                <PriorityIndicator priority={item.priority as PriorityLevel} />
               </div>
               <h3 className="text-xs font-semibold text-content-primary truncate">{item.title}</h3>
             </div>
           </div>
           <div className="flex items-center sm:justify-end gap-3 sm:gap-4 shrink-0 text-[11px] text-content-muted ml-9 sm:ml-0">
-            <span className="truncate max-w-[100px]">{item.assignee}</span>
+            <AssigneeAvatar name={item.assignee} />
             {item.dueDateStr && (
               <span className="flex items-center gap-1 font-mono">
                 <Clock className="w-3 h-3" />

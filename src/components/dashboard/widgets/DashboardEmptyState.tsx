@@ -9,7 +9,7 @@ interface DashboardEmptyStateProps {
 export const DashboardEmptyState: React.FC<DashboardEmptyStateProps> = ({ icon, title, message }) => {
   return (
     <div className="flex flex-col items-center justify-center p-8 rounded-xl border border-dashed border-border-subtle bg-canvas text-center">
-      <div className="p-3 rounded-xl bg-surface border border-border-subtle text-content-muted mb-3">
+      <div className="p-3 rounded-xl bg-gradient-to-br from-surface-raised to-surface border border-border-subtle text-content-muted mb-3">
         {icon}
       </div>
       <h4 className="text-sm font-semibold text-content-primary mb-1">{title}</h4>

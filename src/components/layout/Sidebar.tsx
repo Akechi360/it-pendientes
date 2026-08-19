@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { motion, AnimatePresence } from 'motion/react';
 import {
   LayoutDashboard,
   CheckSquare,
@@ -22,6 +23,7 @@ import {
 import { useApp, ActiveTab } from '../../context/AppContext';
 import { useAuth } from '../../context/AuthContext';
 import { ChangePasswordModal } from '../auth/ChangePasswordModal';
+import { Avatar } from '../shared/Avatar';
 
 export const Sidebar: React.FC = () => {
   const { activeTab, setActiveTab, tasks, incidents, renewals } = useApp();
@@ -79,7 +81,7 @@ export const Sidebar: React.FC = () => {
     <>
       {/* Header / Brand */}
       <div className="flex items-center gap-3 px-4 py-4 border-b border-border-subtle shrink-0">
-        <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-surface-raised border border-border-subtle text-cyan-400 shrink-0">
+        <div className="relative flex items-center justify-center w-8 h-8 rounded-lg bg-surface-raised border border-cyan-500/20 text-cyan-400 shrink-0 shadow-[0_0_16px_-4px] shadow-cyan-500/40">
           <Server className="w-4 h-4" />
         </div>
         {!collapsed && (
@@ -104,24 +106,31 @@ export const Sidebar: React.FC = () => {
               const Icon = item.icon;
               const isActive = activeTab === item.id;
               const badgeClasses = item.badgeColor || 'text-cyan-400 bg-cyan-500/10';
-              
+
               return (
                 <button
                   key={item.id}
                   onClick={() => setActiveTab(item.id as ActiveTab)}
-                  className={`w-full flex items-center justify-between px-3 py-2 rounded-lg text-sm font-medium transition-all group ${
+                  className={`relative w-full flex items-center justify-between px-3 py-2 rounded-lg text-sm font-medium transition-colors group ${
                     isActive
-                      ? 'bg-surface-raised text-cyan-400 border border-border-subtle'
-                      : 'text-content-secondary hover:bg-surface hover:text-content-primary border border-transparent'
+                      ? 'text-cyan-400'
+                      : 'text-content-secondary hover:bg-surface hover:text-content-primary'
                   }`}
                   title={collapsed ? item.label : undefined}
                 >
-                  <div className="flex items-center gap-3 truncate">
+                  {isActive && (
+                    <motion.span
+                      layoutId="sidebar-active-pill"
+                      transition={{ type: 'spring', stiffness: 400, damping: 32 }}
+                      className="absolute inset-0 rounded-lg bg-surface-raised border border-cyan-500/20"
+                    />
+                  )}
+                  <div className="relative flex items-center gap-3 truncate">
                     <Icon className={`w-4 h-4 shrink-0 ${isActive ? 'text-cyan-400' : 'text-content-muted group-hover:text-content-primary transition-colors'}`} />
                     {!collapsed && <span className="truncate">{item.label}</span>}
                   </div>
                   {!collapsed && item.badge !== undefined && item.badge > 0 && (
-                    <span className={`text-[10px] px-2 py-0.5 rounded-full font-mono font-bold ${badgeClasses}`}>
+                    <span className={`relative text-[10px] px-2 py-0.5 rounded-full font-mono font-bold ${badgeClasses}`}>
                       {item.badge}
                     </span>
                   )}
@@ -149,11 +158,7 @@ export const Sidebar: React.FC = () => {
         )}
 
         <div className="flex items-center gap-3">
-          <img
-            src={currentUser.photoURL || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&q=80&w=250'}
-            alt={currentUser.displayName}
-            className="w-8 h-8 rounded-full border border-border-subtle object-cover shrink-0"
-          />
+          <Avatar name={currentUser.displayName} photoURL={currentUser.photoURL} size="sm" ring />
           {!collapsed && (
             <div className="flex-1 overflow-hidden">
               <p className="text-xs font-semibold text-content-primary truncate">{currentUser.displayName}</p>
@@ -199,20 +204,35 @@ export const Sidebar: React.FC = () => {
       </div>
 
       {/* Mobile Drawer Overlay */}
-      {mobileOpen && (
-        <div className="fixed inset-0 z-40 md:hidden flex">
-          <div className="fixed inset-0 bg-canvas/80 backdrop-blur-sm" onClick={() => setMobileOpen(false)} />
-          <aside className="relative w-72 max-w-[80vw] h-full flex flex-col bg-surface border-r border-border-subtle shadow-2xl animate-in slide-in-from-left-full duration-200">
-            <button
+      <AnimatePresence>
+        {mobileOpen && (
+          <div className="fixed inset-0 z-40 md:hidden flex">
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.2 }}
+              className="fixed inset-0 bg-canvas/80 backdrop-blur-sm"
               onClick={() => setMobileOpen(false)}
-              className="absolute top-4 right-4 p-1 rounded-md text-content-muted hover:text-content-primary hover:bg-surface-raised"
+            />
+            <motion.aside
+              initial={{ x: '-100%' }}
+              animate={{ x: 0 }}
+              exit={{ x: '-100%' }}
+              transition={{ type: 'spring', stiffness: 340, damping: 34 }}
+              className="relative w-72 max-w-[80vw] h-full flex flex-col bg-surface border-r border-border-subtle shadow-2xl"
             >
-              <X className="w-5 h-5" />
-            </button>
-            <SidebarContent />
-          </aside>
-        </div>
-      )}
+              <button
+                onClick={() => setMobileOpen(false)}
+                className="absolute top-4 right-4 p-1 rounded-md text-content-muted hover:text-content-primary hover:bg-surface-raised"
+              >
+                <X className="w-5 h-5" />
+              </button>
+              <SidebarContent />
+            </motion.aside>
+          </div>
+        )}
+      </AnimatePresence>
 
       {/* Desktop Sidebar */}
       <aside

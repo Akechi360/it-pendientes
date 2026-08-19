@@ -1,4 +1,5 @@
 import React from 'react';
+import { motion } from 'motion/react';
 import { useAuth } from '../../context/AuthContext';
 import { useApp } from '../../context/AppContext';
 import { OperationalAlert } from './widgets/OperationalAlert';
@@ -36,53 +37,62 @@ export const DashboardView: React.FC = () => {
   const todayStr = new Date().toLocaleDateString('es-ES', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
 
   return (
-    <div className="space-y-6 pb-10 animate-in fade-in duration-300">
-      
-      {/* 
+    <div className="space-y-6 pb-10">
+
+      {/*
         A. Cabecera Operacional Compacta
       */}
       <div className="flex flex-col gap-4">
-        <div className="flex items-center justify-between">
+        <motion.div
+          initial={{ opacity: 0, y: -8 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.4, ease: 'easeOut' }}
+          className="flex items-center justify-between"
+        >
           <div>
             <h1 className="text-xl lg:text-2xl font-bold text-content-primary tracking-tight">
-              Buenos días, {currentUser.displayName.split(' ')[0]}
+              Buenos días, <span className="text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-blue-500">{currentUser.displayName.split(' ')[0]}</span>
             </h1>
             <p className="text-sm text-content-secondary mt-1 capitalize">{todayStr}</p>
           </div>
-        </div>
+        </motion.div>
         <OperationalAlert />
       </div>
 
-      {/* 
+      {/*
         B. Franja de Métricas Compactas
       */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        <MetricInline 
-          label="Tareas Pendientes" 
-          value={activeTasks.length} 
-          icon={<CheckSquare className="w-5 h-5" />} 
+        <MetricInline
+          label="Tareas Pendientes"
+          value={activeTasks.length}
+          icon={<CheckSquare className="w-5 h-5" />}
           colorClass="text-cyan-400 border-cyan-500/20"
+          glowClass="hover:shadow-cyan-500/10"
           onClick={() => setActiveTab('tasks')}
         />
-        <MetricInline 
-          label="Incidencias Abiertas" 
-          value={openIncidents.length} 
-          icon={<LifeBuoy className="w-5 h-5" />} 
+        <MetricInline
+          label="Incidencias Abiertas"
+          value={openIncidents.length}
+          icon={<LifeBuoy className="w-5 h-5" />}
           colorClass="text-amber-400 border-amber-500/20"
+          glowClass="hover:shadow-amber-500/10"
           onClick={() => setActiveTab('incidents')}
         />
-        <MetricInline 
-          label="Proyectos Activos" 
-          value={activeProjects.length} 
-          icon={<FolderKanban className="w-5 h-5" />} 
+        <MetricInline
+          label="Proyectos Activos"
+          value={activeProjects.length}
+          icon={<FolderKanban className="w-5 h-5" />}
           colorClass="text-emerald-400 border-emerald-500/20"
+          glowClass="hover:shadow-emerald-500/10"
           onClick={() => setActiveTab('projects')}
         />
-        <MetricInline 
-          label="Renovaciones Riesgo" 
-          value={upcomingRenewals.length} 
-          icon={<RefreshCw className="w-5 h-5" />} 
+        <MetricInline
+          label="Renovaciones Riesgo"
+          value={upcomingRenewals.length}
+          icon={<RefreshCw className="w-5 h-5" />}
           colorClass="text-violet-400 border-violet-500/20"
+          glowClass="hover:shadow-violet-500/10"
           onClick={() => setActiveTab('renewals')}
         />
       </div>

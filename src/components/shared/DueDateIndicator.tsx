@@ -19,7 +19,7 @@ export const DueDateIndicator: React.FC<DueDateIndicatorProps> = ({ date, type =
 
   if (diff < 0) {
     return (
-      <span className="inline-flex items-center gap-1 text-[11px] font-medium text-rose-400">
+      <span className="inline-flex items-center gap-1 text-[11px] font-bold text-rose-400 bg-rose-500/10 border border-rose-500/20 px-1.5 py-0.5 rounded-full">
         <AlertOctagon className="w-3 h-3" /> Vencido
       </span>
     );
@@ -27,7 +27,7 @@ export const DueDateIndicator: React.FC<DueDateIndicatorProps> = ({ date, type =
 
   if (diff === 0) {
     return (
-      <span className="inline-flex items-center gap-1 text-[11px] font-medium text-amber-400">
+      <span className="inline-flex items-center gap-1 text-[11px] font-bold text-amber-400 bg-amber-500/10 border border-amber-500/20 px-1.5 py-0.5 rounded-full">
         <Clock className="w-3 h-3" /> Vence Hoy
       </span>
     );
