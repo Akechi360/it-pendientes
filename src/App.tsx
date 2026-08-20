@@ -23,6 +23,7 @@ const AppGate: React.FC = () => {
         try {
           if (currentUser) {
             await OneSignal.login(currentUser.uid);
+            OneSignal.User.addTag('uid', currentUser.uid);
             
             // Log diagnostic info
             setTimeout(() => {
