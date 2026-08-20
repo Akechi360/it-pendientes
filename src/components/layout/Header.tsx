@@ -228,7 +228,7 @@ export const Header: React.FC = () => {
                                     e.stopPropagation();
                                     deleteDocument('notifications', n.id);
                                   }}
-                                  className="opacity-0 group-hover:opacity-100 p-1 -mr-1 -mt-1 hover:bg-rose-500/10 text-content-muted hover:text-rose-400 rounded transition-all"
+                                  className="p-1.5 -mr-1.5 -mt-1.5 bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 hover:text-rose-300 rounded-md transition-all"
                                   title="Eliminar notificación"
                                 >
                                   <Trash2 className="w-3.5 h-3.5" />

@@ -92,7 +92,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const { data: assets = [] } = useRealtimeQuery<AssetItem>('assets');
   const { data: renewals = [] } = useRealtimeQuery<RenewalItem>('renewals');
   const { data: activityLogs = [] } = useRealtimeQuery<ActivityLogItem>('activity_logs');
-  const { data: notifications = [] } = useRealtimeQuery<NotificationItem>('notifications');
+  const { data: notifications = [], isFetched: notificationsFetched } = useRealtimeQuery<NotificationItem>('notifications');
   const { data: files = [] } = useRealtimeQuery<FileItem>('files');
 
   // Modals
@@ -172,17 +172,20 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
   // Watch for new notifications to trigger Push
   const seenNotificationsRef = React.useRef<Set<string>>(new Set());
+  const isInitializedRef = React.useRef(false);
 
   useEffect(() => {
-    if (!notifications || notifications.length === 0) return;
+    // Wait until the initial fetch is complete
+    if (!notificationsFetched) return;
 
-    // We only want to trigger push for genuinely NEW notifications that arrive while the app is open.
-    // If the Set is empty, it means this is the first load. We should just populate the Set and not alert.
-    if (seenNotificationsRef.current.size === 0) {
+    if (!isInitializedRef.current) {
+      // First load complete. Mark all existing notifications as seen so we don't spam.
       notifications.forEach(n => seenNotificationsRef.current.add(n.id));
+      isInitializedRef.current = true;
       return;
     }
 
+    // Now, if we are initialized, any new notifications should trigger a push
     notifications.forEach(notification => {
       if (!seenNotificationsRef.current.has(notification.id)) {
         // This is a new notification!
@@ -224,7 +227,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         }
       }
     });
-  }, [notifications]);
+  }, [notifications, notificationsFetched]);
 
   return (
     <AppContext.Provider
