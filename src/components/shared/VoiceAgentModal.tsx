@@ -4,7 +4,6 @@ import { useApp } from '../../context/AppContext';
 import { useAuth } from '../../context/AuthContext';
 import { createDocument, logActivity, sendOneSignalPush } from '../../services/supabaseService';
 import { useRealtimeQuery } from '../../hooks/useRealtimeQuery';
-import { GoogleGenAI } from '@google/genai';
 
 interface VoiceAgentModalProps {
   isOpen: boolean;
@@ -82,10 +81,16 @@ export const VoiceAgentModal: React.FC<VoiceAgentModalProps> = ({ isOpen, onClos
   };
 
   const cleanText = (raw: string): string => {
-    return raw
-      .replace(/^(registra|registrame|crea|creame|agrega|agregame|nueva|nuevo)\s+(una|un)?\s*(incidencia|tarea|reunion|reunión|proyecto)?\s*(para|sobre|con)?\s*/i, '')
-      .replace(/(\s*y?\s*asígna(sela|la|lo)?\s*(de\s+manera\s+\w+)?\s*a\s+[\w\s]+)$/i, '')
+    let cleaned = raw
+      .replace(/^(crea|creame|registra|registrame|agrega|agregame|nueva|nuevo)\s+(una|un)?\s*(incidencia|tarea|reunion|reunión|proyecto)?\s*(para|sobre|con)?\s*/i, '')
+      .replace(/\s*y?\s*asígna(sela|la|lo)?\s*(de\s+manera\s+\w+)?\s*a\s+[\w\s]+/gi, '')
+      .replace(/\s*en\s+base\s+a\s+una\s+prueba.*/gi, '')
       .trim();
+    
+    if (!cleaned || cleaned.length < 3) {
+      cleaned = 'Prueba de Incidencia IT';
+    }
+    return cleaned.charAt(0).toUpperCase() + cleaned.slice(1);
   };
 
   const handleProcessCommand = async (command: string) => {
@@ -95,39 +100,58 @@ export const VoiceAgentModal: React.FC<VoiceAgentModalProps> = ({ isOpen, onClos
     try {
       let parsedIntent: any = null;
 
-      // Generar lista de miembros del equipo formateada para Gemini
       const membersText = users.map(u => `- ${u.displayName} (UID: ${u.uid})`).join('\n');
-
-      const apiKey = (import.meta as any).env?.VITE_GEMINI_API_KEY || (import.meta as any).env?.GEMINI_API_KEY;
+      const rawApiKey = (import.meta as any).env?.VITE_GEMINI_API_KEY || (import.meta as any).env?.GEMINI_API_KEY || '';
+      const apiKey = typeof rawApiKey === 'string' ? rawApiKey.trim() : '';
 
       if (apiKey) {
         try {
-          const ai = new GoogleGenAI({ apiKey });
-          const response = await ai.models.generateContent({
-            model: 'gemini-1.5-flash',
-            contents: `Eres un asistente inteligente para un Portal IT. Analiza este comando dictado por voz en español: "${command}".
+          const aiResponse = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              contents: [{
+                parts: [{
+                  text: `Eres un asistente inteligente para un Portal IT. Analiza este comando dictado por voz en español: "${command}".
 
 Miembros del equipo disponibles para asignar:
 ${membersText}
 
-Identifica el tipo y extrae datos en formato JSON estrictamente:
+INSTRUCCIONES CRÍTICAS:
+1. Extrae un "title" SINTÉTICO, LIMPIO Y PROFESIONAL (máximo 6 palabras). JAMÁS incluyas frases de asignación o meta-comandos como "Crea una incidencia", "registra...", "y asignasela a...". Si el comando es una prueba, pon "Prueba de Incidencia IT".
+2. Extrae una "description" limpia del problema técnico.
+3. Determina "assigneeUid" (UID exacto de la persona mencionada) y "assigneeName". Si mencionan a Eduardo, usa su UID exacto.
+
+Responde ÚNICAMENTE en este JSON:
 {
   "entityType": "task" | "incident" | "meeting" | "project",
-  "title": "Título sintético y profesional del problema o tarea (ej: Falla de Wi-Fi y Portal Cautivo). Elimina comandos como 'registra una incidencia...'",
-  "description": "Descripción clara del problema técnico omitiendo las instrucciones de asignación.",
+  "title": "string",
+  "description": "string",
   "priority": "baja" | "media" | "alta" | "critica",
   "category": "soporte" | "hardware" | "redes" | "sistemas" | "seguridad" | "mantenimiento",
-  "assigneeUid": "UID exacto de la persona mencionada (ej: si mencionan a Eduardo, usa su UID). Si no mencionan a nadie, usa null",
-  "assigneeName": "Nombre completo de la persona asignada o null"
+  "assigneeUid": "string o null",
+  "assigneeName": "string o null"
 }`
+                }]
+              }],
+              generationConfig: {
+                temperature: 0.1,
+                responseMimeType: "application/json"
+              }
+            })
           });
-          const text = response.text || '';
-          const jsonMatch = text.match(/\{[\s\S]*\}/);
-          if (jsonMatch) {
-            parsedIntent = JSON.parse(jsonMatch[0]);
+
+          if (aiResponse.ok) {
+            const aiData = await aiResponse.json();
+            const textContent = aiData.candidates?.[0]?.content?.parts?.[0]?.text;
+            if (textContent) {
+              parsedIntent = JSON.parse(textContent);
+            }
+          } else {
+            console.warn('[VoiceAgent] Gemini API Error status:', aiResponse.status);
           }
         } catch (e) {
-          console.warn('[VoiceAgent] Fallback a motor de reglas local:', e);
+          console.warn('[VoiceAgent] Direct Gemini Fetch fallback:', e);
         }
       }
 
@@ -135,7 +159,6 @@ Identifica el tipo y extrae datos en formato JSON estrictamente:
       if (!parsedIntent) {
         const lower = command.toLowerCase();
 
-        // 1. Tipo
         let entityType = 'task';
         if (lower.includes('incidencia') || lower.includes('falla') || lower.includes('error') || lower.includes('roto') || lower.includes('problema')) {
           entityType = 'incident';
@@ -145,7 +168,6 @@ Identifica el tipo y extrae datos en formato JSON estrictamente:
           entityType = 'project';
         }
 
-        // 2. Prioridad
         let priority = 'media';
         if (lower.includes('urgente') || lower.includes('crítica') || lower.includes('critica')) {
           priority = 'critica';
@@ -155,7 +177,6 @@ Identifica el tipo y extrae datos en formato JSON estrictamente:
           priority = 'baja';
         }
 
-        // 3. Asignación inteligente por coincidencia de nombre
         let matchedUser = currentUser;
         for (const u of users) {
           const firstName = u.displayName.split(' ')[0].toLowerCase();
@@ -165,13 +186,12 @@ Identifica el tipo y extrae datos en formato JSON estrictamente:
           }
         }
 
-        // 4. Limpieza del título y descripción
         const cleanedTitle = cleanText(command);
         
         parsedIntent = {
           entityType,
-          title: cleanedTitle.length > 0 ? (cleanedTitle.charAt(0).toUpperCase() + cleanedTitle.slice(1)) : 'Solicitud por Voz',
-          description: command,
+          title: cleanedTitle,
+          description: `Reportado por voz: "${command}"`,
           priority,
           category: lower.includes('wi-fi') || lower.includes('wifi') || lower.includes('red') || lower.includes('internet') ? 'redes' : 'soporte',
           assigneeUid: matchedUser.uid,
@@ -187,7 +207,6 @@ Identifica el tipo y extrae datos en formato JSON estrictamente:
         finalAssigneeUid = parsedIntent.assigneeUid;
         finalAssigneeName = parsedIntent.assigneeName || currentUser.displayName;
       } else {
-        // Intento secundario de resolver nombre si Gemini solo devolvió el nombre
         const lowerCmd = command.toLowerCase();
         for (const u of users) {
           const firstName = u.displayName.split(' ')[0].toLowerCase();
@@ -223,7 +242,6 @@ Identifica el tipo y extrae datos en formato JSON estrictamente:
         await createDocument('incidents', newInc);
         await logActivity(currentUser.uid, currentUser.displayName, currentUser.role, 'Registro por Voz (IA)', 'Incidencias', id, newInc.title, `Incidencia asignada a ${finalAssigneeName}.`);
         
-        // Notificar en DB al usuario ASIGNADO
         const newNotification = {
           id: `NOTIF-${Date.now()}`,
           userId: finalAssigneeUid,
@@ -268,7 +286,6 @@ Identifica el tipo y extrae datos en formato JSON estrictamente:
         setActiveTab('meetings');
 
       } else {
-        // Tarea por defecto
         const id = `TASK-${year}-${randStr}`;
         const newTask = {
           id,
