@@ -19,14 +19,19 @@ const AppGate: React.FC = () => {
   React.useEffect(() => {
     if (loading) return;
     import('react-onesignal').then(({ default: OneSignal }) => {
-      const handleAuth = () => {
-        if (currentUser) {
-          OneSignal.login(currentUser.uid).then(() => {
-            // Fuerza a OneSignal a mostrar el popup de pedir permisos si no los tiene
+      const handleAuth = async () => {
+        try {
+          if (currentUser) {
+            // Logout first to clear any conflicting external_id from a previous session on this device
+            if (OneSignal.User) await OneSignal.logout();
+            
+            await OneSignal.login(currentUser.uid);
             OneSignal.Slidedown.promptPush();
-          }).catch(console.error);
-        } else {
-          OneSignal.logout().catch(console.error);
+          } else {
+            await OneSignal.logout();
+          }
+        } catch (err) {
+          console.error('[OneSignal] Auth Error:', err);
         }
       };
 

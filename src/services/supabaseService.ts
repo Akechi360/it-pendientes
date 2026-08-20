@@ -241,6 +241,9 @@ export async function sendOneSignalPush(targetUserId: string, title: string, mes
     if (!response.ok) {
       const errorText = await response.text();
       console.error('[OneSignal] Error sending push via Vercel Function:', errorText);
+    } else {
+      const data = await response.json();
+      console.log('[OneSignal] Success Response:', data);
     }
   } catch (err) {
     console.error('[OneSignal] Network error sending push via Vercel Function:', err);
