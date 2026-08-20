@@ -14,25 +14,34 @@ const LoadingScreen: React.FC = () => (
 
 const AppGate: React.FC = () => {
   const { currentUser, loading } = useAuth();
+  const isOneSignalInitPending = React.useRef(false);
 
   React.useEffect(() => {
     if (loading) return;
     import('react-onesignal').then(({ default: OneSignal }) => {
       const handleAuth = () => {
         if (currentUser) {
-          OneSignal.login(currentUser.uid).catch(console.error);
+          OneSignal.login(currentUser.uid).then(() => {
+            // Fuerza a OneSignal a mostrar el popup de pedir permisos si no los tiene
+            OneSignal.Slidedown.promptPush();
+          }).catch(console.error);
         } else {
           OneSignal.logout().catch(console.error);
         }
       };
 
-      // Check if initialized. The React OneSignal wrapper exposes `initialized` boolean property.
-      if (!OneSignal.initialized) {
+      if (!OneSignal.initialized && !isOneSignalInitPending.current) {
+        isOneSignalInitPending.current = true;
         OneSignal.init({
           appId: 'd1338b94-ffbe-4c72-8a96-b9ca075f7147',
           allowLocalhostAsSecureOrigin: true,
-        }).then(handleAuth).catch(console.error);
-      } else {
+        }).then(() => {
+          handleAuth();
+        }).catch(err => {
+          console.error(err);
+          isOneSignalInitPending.current = false;
+        });
+      } else if (OneSignal.initialized) {
         handleAuth();
       }
     });
