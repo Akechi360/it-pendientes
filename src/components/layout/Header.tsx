@@ -192,7 +192,11 @@ export const Header: React.FC = () => {
                           transition={{ duration: 0.2 }}
                           onClick={async () => {
                             if (!n.isRead) {
-                              await updateDocument('notifications', n.id, { isRead: true });
+                              try {
+                                await updateDocument('notifications', n.id, { is_read: true });
+                              } catch (e) {
+                                console.error('Error marking as read:', e);
+                              }
                             }
                             if (n.linkModule) {
                               // Legacy mapping for old notifications created before the fix
