@@ -22,10 +22,17 @@ const AppGate: React.FC = () => {
       const handleAuth = async () => {
         try {
           if (currentUser) {
-            // Logout first to clear any conflicting external_id from a previous session on this device
             if (OneSignal.User) await OneSignal.logout();
-            
             await OneSignal.login(currentUser.uid);
+            
+            // Log diagnostic info
+            setTimeout(() => {
+              console.log('[OneSignal Debug] User ID logged in:', currentUser.uid);
+              console.log('[OneSignal Debug] Opted In:', OneSignal.User.PushSubscription.optedIn);
+              console.log('[OneSignal Debug] Subscription ID:', OneSignal.User.PushSubscription.id);
+              console.log('[OneSignal Debug] External ID in OneSignal:', OneSignal.User.externalId);
+            }, 3000);
+
             OneSignal.Slidedown.promptPush();
           } else {
             await OneSignal.logout();
