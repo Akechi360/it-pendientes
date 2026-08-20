@@ -23,18 +23,6 @@ Aplicación web profesional, ágil, segura y responsive diseñada específicamen
 - **Fechas**: Date-fns.
 - **Backend & DB**: Supabase Auth, Supabase Database (PostgreSQL con Realtime y RLS), Supabase Storage.
 
-## 🔐 Credenciales Iniciales de Acceso
-- **Analista IT (Eduardo Toro)**:
-  - **Email**: `sistemas@clinicaieq.com`
-  - **Contraseña inicial**: `EduardoIT2026!`
-  - **Rol**: `analyst`
-- **Gerente de Sistemas (Admin)**:
-  - **Email**: `gerencia_sistemas@clinicaieq.com`
-  - **Contraseña inicial**: `AdminIT2026!`
-  - **Rol**: `admin`
-
-*Nota: Ambos usuarios pueden cambiar su contraseña en cualquier momento desde la barra lateral ("Cambiar Contraseña").*
-
 ## 📦 Instalación y Ejecución Local
 
 1. Instalar dependencias:
