@@ -118,7 +118,7 @@ export const IncidentDetailModal: React.FC = () => {
         userId: selectedIncident.assigneeId === 'unassigned' ? currentUser.uid : selectedIncident.assigneeId,
         title: 'Nueva Tarea Asignada (Desde Incidencia)',
         message: `Se te ha asignado la tarea: ${newTask.title}`,
-        linkModule: 'tareas',
+        linkModule: 'tasks',
         linkEntityId: taskId,
         isRead: false,
         organizationId: currentUser.organizationId,

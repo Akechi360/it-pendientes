@@ -75,7 +75,7 @@ export const CreateTaskModal: React.FC = () => {
         userId: currentUser.uid,
         title: 'Nueva Tarea Asignada',
         message: `Se te ha asignado la tarea: ${title}`,
-        linkModule: 'tareas',
+        linkModule: 'tasks',
         linkEntityId: id,
         isRead: false,
         organizationId: currentUser.organizationId,

@@ -80,7 +80,7 @@ export const CreateIncidentModal: React.FC = () => {
         userId: currentUser.uid,
         title: 'Nueva Incidencia Asignada',
         message: `Se te ha asignado la incidencia: ${title}`,
-        linkModule: 'incidencias',
+        linkModule: 'incidents',
         linkEntityId: id,
         isRead: false,
         organizationId: currentUser.organizationId,

@@ -72,7 +72,7 @@ export const MeetingsView: React.FC = () => {
           userId: currentUser.uid,
           title: 'Nueva Tarea Asignada (Compromiso)',
           message: `Se ha creado la tarea: ${newTask.title}`,
-          linkModule: 'tareas',
+          linkModule: 'tasks',
           linkEntityId: taskId,
           isRead: false,
           organizationId: currentUser.organizationId,

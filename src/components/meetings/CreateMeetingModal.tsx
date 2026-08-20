@@ -66,7 +66,7 @@ export const CreateMeetingModal: React.FC = () => {
         userId: currentUser.uid,
         title: 'Nueva Reunión Programada',
         message: `Has sido invitado a la reunión: ${title}`,
-        linkModule: 'reuniones',
+        linkModule: 'meetings',
         linkEntityId: id,
         isRead: false,
         organizationId: currentUser.organizationId,

@@ -70,7 +70,7 @@ export const CreateProjectModal: React.FC = () => {
         userId: currentUser.uid,
         title: 'Nuevo Proyecto Asignado',
         message: `Has sido asignado como líder del proyecto: ${title}`,
-        linkModule: 'proyectos',
+        linkModule: 'projects',
         linkEntityId: id,
         isRead: false,
         organizationId: currentUser.organizationId,
