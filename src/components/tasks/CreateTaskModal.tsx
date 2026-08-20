@@ -3,6 +3,7 @@ import { X, CheckSquare } from 'lucide-react';
 import { useApp } from '../../context/AppContext';
 import { useAuth } from '../../context/AuthContext';
 import { createDocument, logActivity, sendOneSignalPush } from '../../services/supabaseService';
+import { useRealtimeQuery } from '../../hooks/useRealtimeQuery';
 import { TaskItem } from '../../types';
 
 export const CreateTaskModal: React.FC = () => {
@@ -15,6 +16,10 @@ export const CreateTaskModal: React.FC = () => {
   const [priority, setPriority] = useState<'baja' | 'media' | 'alta' | 'critica'>('media');
   const [category, setCategory] = useState('soporte');
   const [dueDate, setDueDate] = useState(new Date().toISOString().split('T')[0]);
+  const [assigneeId, setAssigneeId] = useState(currentUser?.uid || '');
+
+  // Obtener lista de usuarios para poder asignar la tarea a otra persona
+  const { data: users } = useRealtimeQuery('users');
 
   if (!isCreateTaskOpen) return null;
 
@@ -25,6 +30,7 @@ export const CreateTaskModal: React.FC = () => {
     setPriority('media');
     setCategory('soporte');
     setDueDate(new Date().toISOString().split('T')[0]);
+    setAssigneeId(currentUser?.uid || '');
   };
 
   const generateId = () => {
@@ -43,6 +49,8 @@ export const CreateTaskModal: React.FC = () => {
     setLoading(true);
     try {
       const id = generateId();
+      const selectedUser = (users || []).find((u: any) => u.uid === assigneeId) || currentUser;
+      
       const newTask: TaskItem = {
         id,
         title,
@@ -50,8 +58,8 @@ export const CreateTaskModal: React.FC = () => {
         status: 'pendiente',
         priority,
         category: category as any,
-        assigneeId: currentUser.uid,
-        assigneeName: currentUser.displayName,
+        assigneeId: selectedUser.uid,
+        assigneeName: selectedUser.display_name || selectedUser.displayName || selectedUser.email,
         creatorId: currentUser.uid,
         creatorName: currentUser.displayName,
         dueDate,
@@ -72,7 +80,7 @@ export const CreateTaskModal: React.FC = () => {
       // CREATE NOTIFICATION
       const newNotification = {
         id: `NOTIF-${Date.now()}`,
-        userId: currentUser.uid,
+        userId: selectedUser.uid,
         title: 'Nueva Tarea Asignada',
         message: `Se te ha asignado la tarea: ${title}`,
         linkModule: 'tasks',
@@ -118,7 +126,15 @@ export const CreateTaskModal: React.FC = () => {
             <textarea rows={3} value={description} onChange={(e) => setDescription(e.target.value)} placeholder="Detalles de la tarea..." className="w-full px-3.5 py-2 rounded-lg bg-surface-raised border border-border-subtle text-content-primary placeholder-content-muted focus:outline-none focus:border-cyan-500/50 text-xs resize-none" />
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-4 gap-3">
+            <div>
+              <label className="block text-[10px] font-bold text-content-muted uppercase tracking-wider mb-1.5">Asignado a</label>
+              <select value={assigneeId} onChange={(e) => setAssigneeId(e.target.value)} className="w-full px-3 py-2 rounded-lg bg-surface-raised border border-border-subtle text-content-primary text-xs focus:outline-none focus:border-cyan-500/50">
+                {users && users.map((u: any) => (
+                  <option key={u.uid} value={u.uid}>{u.display_name || u.email}</option>
+                ))}
+              </select>
+            </div>
             <div>
               <label className="block text-[10px] font-bold text-content-muted uppercase tracking-wider mb-1.5">Categoría</label>
               <select value={category} onChange={(e) => setCategory(e.target.value)} className="w-full px-3 py-2 rounded-lg bg-surface-raised border border-border-subtle text-content-primary text-xs focus:outline-none focus:border-cyan-500/50">

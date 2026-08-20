@@ -24,11 +24,13 @@ createRoot(document.getElementById('root')!).render(
 );
 
 if ('serviceWorker' in navigator) {
-  window.addEventListener('load', () => {
-    navigator.serviceWorker.register('/sw.js').then((registration) => {
-      console.log('SW registered: ', registration);
-    }).catch((registrationError) => {
-      console.log('SW registration failed: ', registrationError);
-    });
+  // Desregistrar cualquier service worker viejo que esté causando conflictos con OneSignal
+  navigator.serviceWorker.getRegistrations().then((registrations) => {
+    for (let registration of registrations) {
+      if (!registration.active?.scriptURL.includes('OneSignalSDKWorker')) {
+        console.log('Desregistrando Service Worker conflictivo:', registration.active?.scriptURL);
+        registration.unregister();
+      }
+    }
   });
 }
