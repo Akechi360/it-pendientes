@@ -3,6 +3,7 @@ import { Mic, MicOff, Sparkles, X, Loader2, Send } from 'lucide-react';
 import { useApp } from '../../context/AppContext';
 import { useAuth } from '../../context/AuthContext';
 import { createDocument, logActivity, sendOneSignalPush } from '../../services/supabaseService';
+import { useRealtimeQuery } from '../../hooks/useRealtimeQuery';
 import { GoogleGenAI } from '@google/genai';
 
 interface VoiceAgentModalProps {
@@ -14,6 +15,9 @@ export const VoiceAgentModal: React.FC<VoiceAgentModalProps> = ({ isOpen, onClos
   const { toast, setActiveTab } = useApp();
   const { currentUser } = useAuth();
 
+  // Suscribirse a usuarios reales registrados en el portal
+  const { data: users = [] } = useRealtimeQuery<{ uid: string; displayName: string; role: string; title?: string }>('users');
+
   const [isListening, setIsListening] = useState(false);
   const [transcript, setTranscript] = useState('');
   const [inputText, setInputText] = useState('');
@@ -23,7 +27,6 @@ export const VoiceAgentModal: React.FC<VoiceAgentModalProps> = ({ isOpen, onClos
   const recognitionRef = useRef<any>(null);
 
   useEffect(() => {
-    // Feature detection for Web Speech API
     const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
     if (SpeechRecognition) {
       const recognition = new SpeechRecognition();
@@ -78,6 +81,13 @@ export const VoiceAgentModal: React.FC<VoiceAgentModalProps> = ({ isOpen, onClos
     }
   };
 
+  const cleanText = (raw: string): string => {
+    return raw
+      .replace(/^(registra|registrame|crea|creame|agrega|agregame|nueva|nuevo)\s+(una|un)?\s*(incidencia|tarea|reunion|reunión|proyecto)?\s*(para|sobre|con)?\s*/i, '')
+      .replace(/(\s*y?\s*asígna(sela|la|lo)?\s*(de\s+manera\s+\w+)?\s*a\s+[\w\s]+)$/i, '')
+      .trim();
+  };
+
   const handleProcessCommand = async (command: string) => {
     if (!command.trim() || !currentUser) return;
     setIsProcessing(true);
@@ -85,7 +95,9 @@ export const VoiceAgentModal: React.FC<VoiceAgentModalProps> = ({ isOpen, onClos
     try {
       let parsedIntent: any = null;
 
-      // Check if Gemini API Key is present in environment
+      // Generar lista de miembros del equipo formateada para Gemini
+      const membersText = users.map(u => `- ${u.displayName} (UID: ${u.uid})`).join('\n');
+
       const apiKey = (import.meta as any).env?.VITE_GEMINI_API_KEY || (import.meta as any).env?.GEMINI_API_KEY;
 
       if (apiKey) {
@@ -93,14 +105,20 @@ export const VoiceAgentModal: React.FC<VoiceAgentModalProps> = ({ isOpen, onClos
           const ai = new GoogleGenAI({ apiKey });
           const response = await ai.models.generateContent({
             model: 'gemini-1.5-flash',
-            contents: `Analiza este comando de un portal IT: "${command}". 
-Determina el tipo (incident, task, meeting, project) y extrae datos clave en formato JSON strictly:
+            contents: `Eres un asistente inteligente para un Portal IT. Analiza este comando dictado por voz en español: "${command}".
+
+Miembros del equipo disponibles para asignar:
+${membersText}
+
+Identifica el tipo y extrae datos en formato JSON estrictamente:
 {
   "entityType": "task" | "incident" | "meeting" | "project",
-  "title": "título sintético en español",
-  "description": "descripción resumida",
+  "title": "Título sintético y profesional del problema o tarea (ej: Falla de Wi-Fi y Portal Cautivo). Elimina comandos como 'registra una incidencia...'",
+  "description": "Descripción clara del problema técnico omitiendo las instrucciones de asignación.",
   "priority": "baja" | "media" | "alta" | "critica",
-  "category": "soporte" | "hardware" | "redes" | "sistemas" | "seguridad" | "mantenimiento"
+  "category": "soporte" | "hardware" | "redes" | "sistemas" | "seguridad" | "mantenimiento",
+  "assigneeUid": "UID exacto de la persona mencionada (ej: si mencionan a Eduardo, usa su UID). Si no mencionan a nadie, usa null",
+  "assigneeName": "Nombre completo de la persona asignada o null"
 }`
           });
           const text = response.text || '';
@@ -109,15 +127,17 @@ Determina el tipo (incident, task, meeting, project) y extrae datos clave en for
             parsedIntent = JSON.parse(jsonMatch[0]);
           }
         } catch (e) {
-          console.warn('[VoiceAgent] Fallback AI error:', e);
+          console.warn('[VoiceAgent] Fallback a motor de reglas local:', e);
         }
       }
 
-      // Rule-based fallback parsing if AI key not configured or failed
+      // Motor de Reglas Local (Fallback ultra-resistente)
       if (!parsedIntent) {
         const lower = command.toLowerCase();
+
+        // 1. Tipo
         let entityType = 'task';
-        if (lower.includes('incidencia') || lower.includes('falla') || lower.includes('error') || lower.includes('roto')) {
+        if (lower.includes('incidencia') || lower.includes('falla') || lower.includes('error') || lower.includes('roto') || lower.includes('problema')) {
           entityType = 'incident';
         } else if (lower.includes('reunión') || lower.includes('reunion') || lower.includes('cita')) {
           entityType = 'meeting';
@@ -125,20 +145,58 @@ Determina el tipo (incident, task, meeting, project) y extrae datos clave en for
           entityType = 'project';
         }
 
+        // 2. Prioridad
         let priority = 'media';
-        if (lower.includes('alta') || lower.includes('urgente') || lower.includes('crítica') || lower.includes('critica')) {
-          priority = lower.includes('crítica') || lower.includes('critica') ? 'critica' : 'alta';
+        if (lower.includes('urgente') || lower.includes('crítica') || lower.includes('critica')) {
+          priority = 'critica';
+        } else if (lower.includes('alta')) {
+          priority = 'alta';
         } else if (lower.includes('baja')) {
           priority = 'baja';
         }
 
+        // 3. Asignación inteligente por coincidencia de nombre
+        let matchedUser = currentUser;
+        for (const u of users) {
+          const firstName = u.displayName.split(' ')[0].toLowerCase();
+          if (lower.includes(firstName)) {
+            matchedUser = u;
+            break;
+          }
+        }
+
+        // 4. Limpieza del título y descripción
+        const cleanedTitle = cleanText(command);
+        
         parsedIntent = {
           entityType,
-          title: command.length > 50 ? command.substring(0, 50) + '...' : command,
-          description: `Generado por Agente de Voz: "${command}"`,
+          title: cleanedTitle.length > 0 ? (cleanedTitle.charAt(0).toUpperCase() + cleanedTitle.slice(1)) : 'Solicitud por Voz',
+          description: command,
           priority,
-          category: 'soporte'
+          category: lower.includes('wi-fi') || lower.includes('wifi') || lower.includes('red') || lower.includes('internet') ? 'redes' : 'soporte',
+          assigneeUid: matchedUser.uid,
+          assigneeName: matchedUser.displayName
         };
+      }
+
+      // Resolver asignación final
+      let finalAssigneeUid = currentUser.uid;
+      let finalAssigneeName = currentUser.displayName;
+
+      if (parsedIntent.assigneeUid) {
+        finalAssigneeUid = parsedIntent.assigneeUid;
+        finalAssigneeName = parsedIntent.assigneeName || currentUser.displayName;
+      } else {
+        // Intento secundario de resolver nombre si Gemini solo devolvió el nombre
+        const lowerCmd = command.toLowerCase();
+        for (const u of users) {
+          const firstName = u.displayName.split(' ')[0].toLowerCase();
+          if (lowerCmd.includes(firstName)) {
+            finalAssigneeUid = u.uid;
+            finalAssigneeName = u.displayName;
+            break;
+          }
+        }
       }
 
       const year = new Date().getFullYear();
@@ -148,7 +206,7 @@ Determina el tipo (incident, task, meeting, project) y extrae datos clave en for
         const id = `INC-${year}-${randStr}`;
         const newInc = {
           id,
-          title: parsedIntent.title || 'Incidencia de Voz',
+          title: parsedIntent.title || 'Incidencia Registrada por Voz',
           description: parsedIntent.description || command,
           category: parsedIntent.category || 'soporte',
           impact: 'medio',
@@ -156,20 +214,21 @@ Determina el tipo (incident, task, meeting, project) y extrae datos clave en for
           priority: parsedIntent.priority || 'media',
           status: 'abierta',
           requester: currentUser.displayName,
-          assigneeId: currentUser.uid,
-          assigneeName: currentUser.displayName,
+          assigneeId: finalAssigneeUid,
+          assigneeName: finalAssigneeName,
           organizationId: currentUser.organizationId,
           createdAt: new Date().toISOString(),
           updatedAt: new Date().toISOString()
         };
         await createDocument('incidents', newInc);
-        await logActivity(currentUser.uid, currentUser.displayName, currentUser.role, 'Registro por Voz (IA)', 'Incidencias', id, newInc.title, 'Creado por Agente de Voz.');
+        await logActivity(currentUser.uid, currentUser.displayName, currentUser.role, 'Registro por Voz (IA)', 'Incidencias', id, newInc.title, `Incidencia asignada a ${finalAssigneeName}.`);
         
+        // Notificar en DB al usuario ASIGNADO
         const newNotification = {
           id: `NOTIF-${Date.now()}`,
-          userId: currentUser.uid,
-          title: 'Incidencia Registrada por Agente IA',
-          message: `Se creó la incidencia: ${newInc.title}`,
+          userId: finalAssigneeUid,
+          title: 'Nueva Incidencia Asignada (IA)',
+          message: `Se te ha asignado la incidencia: ${newInc.title}`,
           linkModule: 'incidents',
           linkEntityId: id,
           isRead: false,
@@ -177,9 +236,11 @@ Determina el tipo (incident, task, meeting, project) y extrae datos clave en for
           createdAt: new Date().toISOString()
         };
         await createDocument('notifications', newNotification);
-        await sendOneSignalPush(currentUser.uid, newNotification.title, newNotification.message);
+        
+        // Despachar Push Notification al teléfono/dispositivo del usuario asignado
+        await sendOneSignalPush(finalAssigneeUid, newNotification.title, newNotification.message);
 
-        toast(`Incidencia ${id} creada por Agente de Voz`, 'success', 'incidents');
+        toast(`Incidencia ${id} asignada a ${finalAssigneeName}`, 'success', 'incidents');
         setActiveTab('incidents');
 
       } else if (parsedIntent.entityType === 'meeting') {
@@ -190,11 +251,11 @@ Determina el tipo (incident, task, meeting, project) y extrae datos clave en for
 
         const newMeeting = {
           id,
-          title: parsedIntent.title || 'Reunión de Voz',
-          objective: command,
+          title: parsedIntent.title || 'Reunión Programada por IA',
+          objective: parsedIntent.description || command,
           startTime: startTime.toISOString(),
           endTime: endTime.toISOString(),
-          participants: [currentUser.displayName],
+          participants: [currentUser.displayName, finalAssigneeName],
           modality: 'presencial',
           status: 'programada',
           organizationId: currentUser.organizationId,
@@ -207,17 +268,17 @@ Determina el tipo (incident, task, meeting, project) y extrae datos clave en for
         setActiveTab('meetings');
 
       } else {
-        // Default: Task
+        // Tarea por defecto
         const id = `TASK-${year}-${randStr}`;
         const newTask = {
           id,
-          title: parsedIntent.title || 'Tarea de Voz',
+          title: parsedIntent.title || 'Tarea Creada por IA',
           description: parsedIntent.description || command,
           status: 'pendiente',
           priority: parsedIntent.priority || 'media',
           category: parsedIntent.category || 'soporte',
-          assigneeId: currentUser.uid,
-          assigneeName: currentUser.displayName,
+          assigneeId: finalAssigneeUid,
+          assigneeName: finalAssigneeName,
           creatorId: currentUser.uid,
           creatorName: currentUser.displayName,
           dueDate: new Date().toISOString().split('T')[0],
@@ -226,13 +287,13 @@ Determina el tipo (incident, task, meeting, project) y extrae datos clave en for
           updatedAt: new Date().toISOString()
         };
         await createDocument('tasks', newTask);
-        await logActivity(currentUser.uid, currentUser.displayName, currentUser.role, 'Tarea por Voz (IA)', 'Tareas', id, newTask.title, 'Creada por Agente de Voz.');
+        await logActivity(currentUser.uid, currentUser.displayName, currentUser.role, 'Tarea por Voz (IA)', 'Tareas', id, newTask.title, `Tarea asignada a ${finalAssigneeName}.`);
 
         const newNotification = {
           id: `NOTIF-${Date.now()}`,
-          userId: currentUser.uid,
-          title: 'Nueva Tarea Creada por Agente IA',
-          message: `Se creó la tarea: ${newTask.title}`,
+          userId: finalAssigneeUid,
+          title: 'Nueva Tarea Asignada (IA)',
+          message: `Se te ha asignado la tarea: ${newTask.title}`,
           linkModule: 'tasks',
           linkEntityId: id,
           isRead: false,
@@ -240,9 +301,9 @@ Determina el tipo (incident, task, meeting, project) y extrae datos clave en for
           createdAt: new Date().toISOString()
         };
         await createDocument('notifications', newNotification);
-        await sendOneSignalPush(currentUser.uid, newNotification.title, newNotification.message);
+        await sendOneSignalPush(finalAssigneeUid, newNotification.title, newNotification.message);
 
-        toast(`Tarea ${id} creada por Agente de Voz`, 'success', 'tasks');
+        toast(`Tarea ${id} asignada a ${finalAssigneeName}`, 'success', 'tasks');
         setActiveTab('tasks');
       }
 
@@ -320,7 +381,7 @@ Determina el tipo (incident, task, meeting, project) y extrae datos clave en for
             type="text"
             value={inputText}
             onChange={(e) => setInputText(e.target.value)}
-            placeholder="Ej: Registra una incidencia urgente por fallo en servidor..."
+            placeholder="Ej: Registra una incidencia urgente por fallo en servidor a Eduardo..."
             disabled={isProcessing}
             className="flex-1 px-3 py-2 rounded-xl bg-surface-raised border border-border-subtle text-xs text-content-primary placeholder-content-muted focus:outline-none focus:border-cyan-500/50"
           />

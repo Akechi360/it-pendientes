@@ -21,8 +21,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [authError, setAuthError] = useState<string | null>(null);
 
   useEffect(() => {
+    // Timeout de seguridad para evitar pantallas de carga bloqueadas por red
+    const fallbackTimer = setTimeout(() => {
+      setLoading(false);
+    }, 800);
+
     // Escuchar cambios en sesión de Supabase Auth
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+      clearTimeout(fallbackTimer);
       if (session?.user) {
         let profile = await getUserProfile(session.user.id);
         if (!profile) {
@@ -35,7 +41,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             title: session.user.email?.startsWith('sistemas') ? 'Analista IT' : 'Gerencia IT',
             organizationId: 'org_sistemas_main'
           };
-          // Import y utiliza upsertUserProfile
           const { upsertUserProfile } = await import('../services/supabaseService');
           await upsertUserProfile(newProfile);
           profile = newProfile;
@@ -48,7 +53,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setLoading(false);
     });
 
-    return () => subscription.unsubscribe();
+    return () => {
+      clearTimeout(fallbackTimer);
+      subscription.unsubscribe();
+    };
   }, []);
 
   const signIn = async (email: string, password: string): Promise<void> => {
@@ -82,11 +90,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           organizationId: 'org_sistemas_main'
         };
 
-        // Guardar perfil en la tabla public.users para persistencia RLS
-        const { upsertUserProfile } = await import('../services/supabaseService');
-        await upsertUserProfile(profile);
-
         setCurrentUser(profile);
+        try {
+          const { upsertUserProfile } = await import('../services/supabaseService');
+          await upsertUserProfile(profile);
+        } catch (e) {
+          console.warn('[Auth] Upsert profile non-blocking error:', e);
+        }
         return;
       }
 

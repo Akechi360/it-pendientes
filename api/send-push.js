@@ -17,6 +17,7 @@ export default async function handler(req, res) {
   }
 
   try {
+    // 1. Intentar envío por external_id (compatible con OneSignal.login)
     const response = await fetch('https://api.onesignal.com/notifications', {
       method: 'POST',
       headers: {
@@ -26,21 +27,42 @@ export default async function handler(req, res) {
       },
       body: JSON.stringify({
         app_id: appId,
-        include_aliases: { external_id: [targetUserId] },
-        filters: [{ field: 'tag', key: 'uid', relation: '=', value: targetUserId }],
+        include_external_user_ids: [targetUserId],
         headings: { en: title, es: title },
-        contents: { en: message, es: message },
+        contents: { en: message, es: message }
       })
     });
 
     const responseData = await response.text();
+    console.log('[OneSignal Serverless] Status:', response.status, 'Data:', responseData);
 
-    if (!response.ok) {
-      return res.status(response.status).json({ error: 'OneSignal API Error', details: responseData });
+    let parsed = {};
+    try { parsed = JSON.parse(responseData); } catch (e) {}
+
+    // Si no hay destinatarios por external_id o hay error, fallback al filtro por tag 'uid'
+    if (!response.ok || parsed.recipients === 0) {
+      console.log('[OneSignal Serverless] Fallback a tag filter uid:', targetUserId);
+      const fallbackResp = await fetch('https://api.onesignal.com/notifications', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Key ' + restApiKey,
+          'Accept': 'application/json'
+        },
+        body: JSON.stringify({
+          app_id: appId,
+          filters: [{ field: 'tag', key: 'uid', relation: '=', value: targetUserId }],
+          headings: { en: title, es: title },
+          contents: { en: message, es: message }
+        })
+      });
+      const fallbackData = await fallbackResp.text();
+      return res.status(fallbackResp.status).json({ success: fallbackResp.ok, data: fallbackData });
     }
 
     return res.status(200).json({ success: true, data: responseData });
   } catch (error) {
-    return res.status(500).json({ error: 'Internal Server Error' });
+    console.error('[OneSignal Serverless Error]', error);
+    return res.status(500).json({ error: 'Internal Server Error', details: String(error) });
   }
 }
