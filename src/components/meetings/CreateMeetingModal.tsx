@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { X, Users } from 'lucide-react';
 import { useApp } from '../../context/AppContext';
 import { useAuth } from '../../context/AuthContext';
-import { createDocument, logActivity } from '../../services/supabaseService';
+import { createDocument, logActivity, sendOneSignalPush } from '../../services/supabaseService';
 import { MeetingItem } from '../../types';
 
 export const CreateMeetingModal: React.FC = () => {
@@ -73,6 +73,7 @@ export const CreateMeetingModal: React.FC = () => {
         createdAt: new Date().toISOString()
       };
       await createDocument('notifications', newNotification);
+      await sendOneSignalPush(newNotification.userId, newNotification.title, newNotification.message);
 
       toast(`Reunión ${id} programada`, 'success');
       

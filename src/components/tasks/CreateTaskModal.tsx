@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { X, CheckSquare } from 'lucide-react';
 import { useApp } from '../../context/AppContext';
 import { useAuth } from '../../context/AuthContext';
-import { createDocument, logActivity } from '../../services/supabaseService';
+import { createDocument, logActivity, sendOneSignalPush } from '../../services/supabaseService';
 import { TaskItem } from '../../types';
 
 export const CreateTaskModal: React.FC = () => {
@@ -82,6 +82,7 @@ export const CreateTaskModal: React.FC = () => {
         createdAt: new Date().toISOString()
       };
       await createDocument('notifications', newNotification);
+      await sendOneSignalPush(newNotification.userId, newNotification.title, newNotification.message);
 
       toast(`Tarea ${id} creada`, 'success');
       
