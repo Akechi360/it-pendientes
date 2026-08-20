@@ -26,25 +26,29 @@ export function useRealtimeQuery<T>(tableName: string) {
   const query = useQuery({
     queryKey,
     queryFn: async (): Promise<T[]> => {
-      const { data, error } = await supabase.from(tableName).select('*');
-      if (error) {
-        console.warn(`[TanStack] Error fetch para ${tableName}:`, error.message);
-        throw new Error(error.message);
+      try {
+        const { data, error } = await supabase.from(tableName).select('*');
+        if (error) {
+          console.warn(`[TanStack] Error fetch para ${tableName}:`, error.message);
+          return [];
+        }
+        return data ? data.map((row) => toCamel<T>(row as Record<string, unknown>)) : [];
+      } catch (err) {
+        console.warn(`[TanStack] Exception fetch para ${tableName}:`, err);
+        return [];
       }
-      return data ? data.map((row) => toCamel<T>(row as Record<string, unknown>)) : [];
     },
   });
 
   useEffect(() => {
-    // Suscripción realtime (Postgres Changes)
+    // Generar un ID único por suscripción para evitar colisión de canales en Supabase Realtime
+    const channelId = `rt:${tableName}:${Math.random().toString(36).substring(2, 9)}`;
     const channel = supabase
-      .channel(`rt:${tableName}`)
+      .channel(channelId)
       .on(
         'postgres_changes',
         { event: '*', schema: 'public', table: tableName },
         () => {
-          // Invalidate cache to trigger a refetch
-          // This is the safest way to ensure data is perfectly in sync
           queryClient.invalidateQueries({ queryKey });
         }
       )
@@ -55,9 +59,13 @@ export function useRealtimeQuery<T>(tableName: string) {
       });
 
     return () => {
-      supabase.removeChannel(channel);
+      try {
+        supabase.removeChannel(channel);
+      } catch (e) {
+        // Safe cleanup
+      }
     };
-  }, [tableName, queryClient]); // Removed queryKey from dependencies to avoid loop, it's derived
+  }, [tableName, queryClient]);
 
   return query;
 }
