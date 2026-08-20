@@ -72,7 +72,7 @@ export const CreateTaskModal: React.FC = () => {
       // CREATE NOTIFICATION
       const newNotification = {
         id: `NOTIF-${Date.now()}`,
-        userId: assigneeId === 'unassigned' ? currentUser.uid : assigneeId,
+        userId: currentUser.uid,
         title: 'Nueva Tarea Asignada',
         message: `Se te ha asignado la tarea: ${title}`,
         linkModule: 'tareas',
