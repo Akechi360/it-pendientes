@@ -68,6 +68,21 @@ export const CreateTaskModal: React.FC = () => {
       
       await createDocument('tasks', newTask);
       await logActivity(currentUser.uid, currentUser.displayName, currentUser.role, 'Creación de Tarea', 'Tareas', id, title, 'Tarea creada manualmente.');
+      
+      // CREATE NOTIFICATION
+      const newNotification = {
+        id: `NOTIF-${Date.now()}`,
+        userId: assigneeId === 'unassigned' ? currentUser.uid : assigneeId,
+        title: 'Nueva Tarea Asignada',
+        message: `Se te ha asignado la tarea: ${title}`,
+        linkModule: 'tareas',
+        linkEntityId: id,
+        isRead: false,
+        organizationId: currentUser.organizationId,
+        createdAt: new Date().toISOString()
+      };
+      await createDocument('notifications', newNotification);
+
       toast(`Tarea ${id} creada`, 'success');
       
       handleClose();

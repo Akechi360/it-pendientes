@@ -63,6 +63,21 @@ export const CreateProjectModal: React.FC = () => {
       
       await createDocument('projects', newProj);
       await logActivity(currentUser.uid, currentUser.displayName, currentUser.role, 'Creación de Proyecto', 'Proyectos', id, title, 'Proyecto iniciado manualmente.');
+      
+      // CREATE NOTIFICATION
+      const newNotification = {
+        id: `NOTIF-${Date.now()}`,
+        userId: currentUser.uid,
+        title: 'Nuevo Proyecto Asignado',
+        message: `Has sido asignado como líder del proyecto: ${title}`,
+        linkModule: 'proyectos',
+        linkEntityId: id,
+        isRead: false,
+        organizationId: currentUser.organizationId,
+        createdAt: new Date().toISOString()
+      };
+      await createDocument('notifications', newNotification);
+
       toast(`Proyecto ${id} creado`, 'success');
       
       handleClose();

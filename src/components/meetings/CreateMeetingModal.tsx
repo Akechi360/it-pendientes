@@ -59,6 +59,21 @@ export const CreateMeetingModal: React.FC = () => {
       
       await createDocument('meetings', newMeet);
       await logActivity(currentUser.uid, currentUser.displayName, currentUser.role, 'Programación de Reunión', 'Reuniones', id, title, 'Reunión programada manualmente.');
+      
+      // CREATE NOTIFICATION
+      const newNotification = {
+        id: `NOTIF-${Date.now()}`,
+        userId: currentUser.uid,
+        title: 'Nueva Reunión Programada',
+        message: `Has sido invitado a la reunión: ${title}`,
+        linkModule: 'reuniones',
+        linkEntityId: id,
+        isRead: false,
+        organizationId: currentUser.organizationId,
+        createdAt: new Date().toISOString()
+      };
+      await createDocument('notifications', newNotification);
+
       toast(`Reunión ${id} programada`, 'success');
       
       handleClose();

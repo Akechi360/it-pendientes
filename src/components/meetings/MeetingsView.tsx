@@ -64,6 +64,23 @@ export const MeetingsView: React.FC = () => {
 
     try {
       await createDocument('tasks', newTask);
+
+      // CREATE NOTIFICATION
+      if (currentUser) {
+        const newNotification = {
+          id: `NOTIF-${Date.now()}`,
+          userId: currentUser.uid,
+          title: 'Nueva Tarea Asignada (Compromiso)',
+          message: `Se ha creado la tarea: ${newTask.title}`,
+          linkModule: 'tareas',
+          linkEntityId: taskId,
+          isRead: false,
+          organizationId: currentUser.organizationId,
+          createdAt: new Date().toISOString()
+        };
+        await createDocument('notifications', newNotification);
+      }
+
       toast(`Compromiso convertido a tarea ${taskId}`, 'success');
     } catch (err) {
       toast('Error al crear tarea', 'error');

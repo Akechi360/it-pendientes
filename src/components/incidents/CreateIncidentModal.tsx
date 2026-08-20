@@ -73,6 +73,21 @@ export const CreateIncidentModal: React.FC = () => {
       
       await createDocument('incidents', newInc);
       await logActivity(currentUser.uid, currentUser.displayName, currentUser.role, 'Registro de Incidencia', 'Incidencias', id, title, 'Incidencia registrada manualmente.');
+      
+      // CREATE NOTIFICATION
+      const newNotification = {
+        id: `NOTIF-${Date.now()}`,
+        userId: assigneeId === 'unassigned' ? currentUser.uid : assigneeId,
+        title: 'Nueva Incidencia Asignada',
+        message: `Se te ha asignado la incidencia: ${title}`,
+        linkModule: 'incidencias',
+        linkEntityId: id,
+        isRead: false,
+        organizationId: currentUser.organizationId,
+        createdAt: new Date().toISOString()
+      };
+      await createDocument('notifications', newNotification);
+
       toast(`Incidencia ${id} registrada`, 'success');
       
       handleClose();

@@ -111,6 +111,21 @@ export const IncidentDetailModal: React.FC = () => {
     try {
       await createDocument('tasks', newTask);
       await updateDocument('incidents', selectedIncident.id, { status: 'en_progreso' });
+      
+      // CREATE NOTIFICATION
+      const newNotification = {
+        id: `NOTIF-${Date.now()}`,
+        userId: selectedIncident.assigneeId === 'unassigned' ? currentUser.uid : selectedIncident.assigneeId,
+        title: 'Nueva Tarea Asignada (Desde Incidencia)',
+        message: `Se te ha asignado la tarea: ${newTask.title}`,
+        linkModule: 'tareas',
+        linkEntityId: taskId,
+        isRead: false,
+        organizationId: currentUser.organizationId,
+        createdAt: new Date().toISOString()
+      };
+      await createDocument('notifications', newNotification);
+
       toast(`Incidencia convertida en Tarea ${taskId}`, 'success');
       handleClose();
     } catch (err) {
