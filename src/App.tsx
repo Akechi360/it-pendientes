@@ -22,7 +22,6 @@ const AppGate: React.FC = () => {
       const handleAuth = async () => {
         try {
           if (currentUser) {
-            if (OneSignal.User) await OneSignal.logout();
             await OneSignal.login(currentUser.uid);
             
             // Log diagnostic info
