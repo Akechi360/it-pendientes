@@ -28,6 +28,17 @@ const AppGate: React.FC = () => {
 
 // ─── Raíz de la aplicación ───
 export default function App() {
+  React.useEffect(() => {
+    import('react-onesignal').then(({ default: OneSignal }) => {
+      OneSignal.init({
+        appId: 'd1338b94-ffbe-4c72-8a96-b9ca075f7147',
+        allowLocalhostAsSecureOrigin: true,
+      }).catch(err => {
+        console.error('OneSignal Init Error:', err);
+      });
+    });
+  }, []);
+
   return (
     <AuthProvider>
       <AppGate />

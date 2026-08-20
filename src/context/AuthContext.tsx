@@ -42,8 +42,16 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         }
 
         setCurrentUser(profile);
+        import('react-onesignal').then(({ default: OneSignal }) => {
+          if (profile.uid) {
+            OneSignal.login(profile.uid).catch(console.error);
+          }
+        });
       } else {
         setCurrentUser(null);
+        import('react-onesignal').then(({ default: OneSignal }) => {
+          OneSignal.logout().catch(console.error);
+        });
       }
       setLoading(false);
     });

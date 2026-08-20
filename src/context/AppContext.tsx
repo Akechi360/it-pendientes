@@ -188,43 +188,9 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     // Now, if we are initialized, any new notifications should trigger a push
     notifications.forEach(notification => {
       if (!seenNotificationsRef.current.has(notification.id)) {
-        // This is a new notification!
+        // We just add it to seen. The actual push delivery is now handled natively
+        // via OneSignal REST API triggered at creation time.
         seenNotificationsRef.current.add(notification.id);
-
-        if (!notification.isRead && 'Notification' in window && Notification.permission === 'granted') {
-          // Standard and most robust way to show notifications, especially on mobile Chrome
-          if ('serviceWorker' in navigator) {
-            navigator.serviceWorker.ready.then((registration) => {
-              registration.showNotification(notification.title, {
-                body: notification.message,
-                icon: '/icon.svg',
-                vibrate: [200, 100, 200],
-                data: { url: '/' }
-              }).catch(err => {
-                console.error('Error showing SW notification:', err);
-                // Fallback if SW fails
-                try {
-                  new Notification(notification.title, {
-                    body: notification.message,
-                    icon: '/icon.svg'
-                  });
-                } catch (e) {
-                  console.error('Fallback notification failed (likely mobile):', e);
-                }
-              });
-            });
-          } else {
-            // Fallback for desktop browsers without SW
-            try {
-              new Notification(notification.title, {
-                body: notification.message,
-                icon: '/icon.svg'
-              });
-            } catch (e) {
-              console.error('Desktop fallback notification failed:', e);
-            }
-          }
-        }
       }
     });
   }, [notifications, notificationsFetched]);
