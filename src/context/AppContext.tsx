@@ -171,35 +171,59 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   }, []);
 
   // Watch for new notifications to trigger Push
-  useEffect(() => {
-    if (!notifications.length) return;
-    
-    // Check the latest notification
-    const latestNotification = [...notifications].sort((a, b) => 
-      new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
-    )[0];
+  const seenNotificationsRef = React.useRef<Set<string>>(new Set());
 
-    // If it's very recent (e.g. last 10 seconds) and not read, trigger push
-    const isRecent = (new Date().getTime() - new Date(latestNotification.createdAt).getTime()) < 10000;
-    
-    if (isRecent && !latestNotification.isRead && 'Notification' in window && Notification.permission === 'granted') {
-      if ('serviceWorker' in navigator && navigator.serviceWorker.controller) {
-        navigator.serviceWorker.controller.postMessage({
-          type: 'SHOW_NOTIFICATION',
-          payload: {
-            title: latestNotification.title,
-            body: latestNotification.message,
-            url: '/'
-          }
-        });
-      } else {
-        // Fallback for desktop browsers without SW active yet
-        new Notification(latestNotification.title, {
-          body: latestNotification.message,
-          icon: '/icon.svg'
-        });
-      }
+  useEffect(() => {
+    if (!notifications || notifications.length === 0) return;
+
+    // We only want to trigger push for genuinely NEW notifications that arrive while the app is open.
+    // If the Set is empty, it means this is the first load. We should just populate the Set and not alert.
+    if (seenNotificationsRef.current.size === 0) {
+      notifications.forEach(n => seenNotificationsRef.current.add(n.id));
+      return;
     }
+
+    notifications.forEach(notification => {
+      if (!seenNotificationsRef.current.has(notification.id)) {
+        // This is a new notification!
+        seenNotificationsRef.current.add(notification.id);
+
+        if (!notification.isRead && 'Notification' in window && Notification.permission === 'granted') {
+          // Standard and most robust way to show notifications, especially on mobile Chrome
+          if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.ready.then((registration) => {
+              registration.showNotification(notification.title, {
+                body: notification.message,
+                icon: '/icon.svg',
+                vibrate: [200, 100, 200],
+                data: { url: '/' }
+              }).catch(err => {
+                console.error('Error showing SW notification:', err);
+                // Fallback if SW fails
+                try {
+                  new Notification(notification.title, {
+                    body: notification.message,
+                    icon: '/icon.svg'
+                  });
+                } catch (e) {
+                  console.error('Fallback notification failed (likely mobile):', e);
+                }
+              });
+            });
+          } else {
+            // Fallback for desktop browsers without SW
+            try {
+              new Notification(notification.title, {
+                body: notification.message,
+                icon: '/icon.svg'
+              });
+            } catch (e) {
+              console.error('Desktop fallback notification failed:', e);
+            }
+          }
+        }
+      }
+    });
   }, [notifications]);
 
   return (
