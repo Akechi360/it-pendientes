@@ -11,11 +11,13 @@ import {
   ChevronDown,
   CheckSquare,
   LifeBuoy,
-  FolderKanban
+  FolderKanban,
+  Trash2
 } from 'lucide-react';
 import { useApp } from '../../context/AppContext';
 import { useAuth } from '../../context/AuthContext';
 import { Avatar } from '../shared/Avatar';
+import { updateDocument, deleteDocument } from '../../services/supabaseService';
 
 export const Header: React.FC = () => {
   const {
@@ -145,42 +147,100 @@ export const Header: React.FC = () => {
                   <h3 className="font-semibold text-sm flex items-center gap-2 text-content-primary">
                     <Bell className="w-4 h-4 text-cyan-400" /> Notificaciones
                   </h3>
-                  <button
-                    onClick={() => setShowNotifications(false)}
-                    className="p-1 rounded hover:bg-surface-hover text-content-muted hover:text-content-primary transition-colors"
-                  >
-                    <X className="w-4 h-4" />
-                  </button>
+                  <div className="flex items-center gap-1">
+                    {notifications.some(n => n.isRead) && (
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          notifications.filter(n => n.isRead).forEach(n => {
+                            deleteDocument('notifications', n.id);
+                          });
+                        }}
+                        className="p-1 rounded hover:bg-rose-500/10 text-content-muted hover:text-rose-400 transition-colors"
+                        title="Eliminar todas las leídas"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    )}
+                    <button
+                      onClick={() => setShowNotifications(false)}
+                      className="p-1 rounded hover:bg-surface-hover text-content-muted hover:text-content-primary transition-colors"
+                    >
+                      <X className="w-4 h-4" />
+                    </button>
+                  </div>
                 </div>
 
                 <div className="max-h-72 overflow-y-auto custom-scrollbar p-2 space-y-1">
-                  {notifications.length === 0 ? (
-                    <p className="text-xs text-content-muted py-4 text-center">No hay notificaciones recientes.</p>
-                  ) : (
-                    notifications.map((n) => (
-                      <div
-                        key={n.id}
-                        onClick={() => {
-                          if (n.linkModule) setActiveTab(n.linkModule as any);
-                          setShowNotifications(false);
-                        }}
-                        className={`relative p-3 pl-4 rounded-lg border text-xs cursor-pointer transition-all overflow-hidden ${
-                          n.isRead
-                            ? 'bg-canvas border-transparent text-content-muted hover:bg-surface-hover'
-                            : 'bg-surface-raised border-border-subtle text-content-primary hover:bg-surface-hover'
-                        }`}
+                  <AnimatePresence initial={false}>
+                    {notifications.length === 0 ? (
+                      <motion.p 
+                        initial={{ opacity: 0 }} 
+                        animate={{ opacity: 1 }} 
+                        className="text-xs text-content-muted py-4 text-center"
                       >
-                        {!n.isRead && <span className="absolute left-0 top-0 bottom-0 w-1 bg-cyan-500" />}
-                        <div className="flex items-center justify-between font-semibold mb-1">
-                          <span>{n.title}</span>
-                          <span className="text-[10px] text-content-muted font-mono shrink-0 ml-2">
-                            {new Date(n.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                          </span>
-                        </div>
-                        <p className="text-content-secondary text-[11px] leading-relaxed">{n.message}</p>
-                      </div>
-                    ))
-                  )}
+                        No hay notificaciones recientes.
+                      </motion.p>
+                    ) : (
+                      notifications.map((n) => (
+                        <motion.div
+                          layout
+                          key={n.id}
+                          initial={{ opacity: 0, x: 20 }}
+                          animate={{ opacity: 1, x: 0 }}
+                          exit={{ opacity: 0, scale: 0.9, filter: 'blur(4px)' }}
+                          transition={{ duration: 0.2 }}
+                          onClick={async () => {
+                            if (!n.isRead) {
+                              await updateDocument('notifications', n.id, { isRead: true });
+                            }
+                            if (n.linkModule) {
+                              // Legacy mapping for old notifications created before the fix
+                              const tabMap: Record<string, string> = {
+                                'tareas': 'tasks',
+                                'incidencias': 'incidents',
+                                'proyectos': 'projects',
+                                'reuniones': 'meetings',
+                                'documentos': 'documents',
+                                'activos': 'assets'
+                              };
+                              const targetTab = tabMap[n.linkModule] || n.linkModule;
+                              setActiveTab(targetTab as any);
+                            }
+                            setShowNotifications(false);
+                          }}
+                          className={`relative p-3 pl-4 rounded-lg border text-xs cursor-pointer transition-all overflow-hidden group ${
+                            n.isRead
+                              ? 'bg-canvas border-transparent text-content-muted hover:bg-surface-hover'
+                              : 'bg-surface-raised border-border-subtle text-content-primary hover:bg-surface-hover'
+                          }`}
+                        >
+                          {!n.isRead && <span className="absolute left-0 top-0 bottom-0 w-1 bg-cyan-500" />}
+                          <div className="flex items-start justify-between font-semibold mb-1">
+                            <span className="pr-4 leading-tight">{n.title}</span>
+                            <div className="flex items-center gap-2 shrink-0">
+                              <span className="text-[10px] text-content-muted font-mono">
+                                {new Date(n.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                              </span>
+                              {n.isRead && (
+                                <button
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    deleteDocument('notifications', n.id);
+                                  }}
+                                  className="opacity-0 group-hover:opacity-100 p-1 -mr-1 -mt-1 hover:bg-rose-500/10 text-content-muted hover:text-rose-400 rounded transition-all"
+                                  title="Eliminar notificación"
+                                >
+                                  <Trash2 className="w-3.5 h-3.5" />
+                                </button>
+                              )}
+                            </div>
+                          </div>
+                          <p className="text-content-secondary text-[11px] leading-relaxed pr-6">{n.message}</p>
+                        </motion.div>
+                      ))
+                    )}
+                  </AnimatePresence>
                 </div>
               </motion.div>
             )}
