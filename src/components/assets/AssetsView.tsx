@@ -12,6 +12,8 @@ import { AssetItem, AssetType } from '../../types';
 import { EntityPageHeader } from '../shared/EntityPageHeader';
 import { StatusBadge } from '../shared/StatusBadge';
 import { formatDate } from '../../utils/dateUtils';
+import { parseInventoryExcel } from '../../utils/excelParser';
+import { Upload } from 'lucide-react';
 
 export const AssetsView: React.FC = () => {
   const { assets, toast } = useApp();
@@ -62,6 +64,40 @@ export const AssetsView: React.FC = () => {
       setIpAddress('');
     } catch (err) {
       toast('Error al registrar activo', 'error');
+    }
+  };
+
+  const [isUploading, setIsUploading] = useState(false);
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file || !currentUser) return;
+    
+    setIsUploading(true);
+    try {
+      toast('Analizando archivo Excel...', 'info');
+      const parsedAssets = await parseInventoryExcel(file, currentUser.organizationId);
+      
+      if (parsedAssets.length === 0) {
+        toast('No se encontraron registros válidos', 'error');
+        setIsUploading(false);
+        return;
+      }
+
+      toast(`Importando ${parsedAssets.length} activos...`, 'info');
+      
+      // Batch insertion sequentially to avoid overwhelming
+      for (const asset of parsedAssets) {
+        await createDocument('assets', asset);
+      }
+      
+      await logActivity(currentUser.uid, currentUser.displayName, currentUser.role, 'Importación Masiva', 'Inventario', 'MULTIPLE', 'N/A', `Se importaron ${parsedAssets.length} activos desde Excel.`);
+      toast(`Se importaron ${parsedAssets.length} activos exitosamente`, 'success');
+      
+    } catch (err: any) {
+      toast('Error al procesar el Excel: ' + err.message, 'error');
+    } finally {
+      setIsUploading(false);
+      if (e.target) e.target.value = ''; // Reset input
     }
   };
 
@@ -158,6 +194,14 @@ export const AssetsView: React.FC = () => {
             placeholder="Buscar por nombre o etiqueta tag..."
             className="w-full pl-8 pr-3 py-1.5 rounded-lg bg-surface-raised border border-border-subtle text-xs text-content-primary placeholder-content-muted focus:outline-none focus:border-cyan-500/50"
           />
+        </div>
+        
+        <div className="flex items-center gap-3">
+           <input type="file" accept=".xlsx, .xls" onChange={handleFileUpload} disabled={isUploading} className="hidden" id="excel-upload" />
+           <label htmlFor="excel-upload" className={`flex items-center gap-2 cursor-pointer px-3 py-1.5 rounded-lg border border-border-subtle bg-surface-raised hover:bg-surface-hover text-content-primary text-xs font-semibold transition-colors ${isUploading ? 'opacity-50 cursor-not-allowed' : ''}`}>
+              <Upload className="w-4 h-4 text-cyan-400" /> 
+              {isUploading ? 'Importando...' : 'Importar Excel'}
+           </label>
         </div>
       </div>
 
