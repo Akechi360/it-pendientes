@@ -152,17 +152,17 @@ export const Sidebar: React.FC = () => {
               <ShieldCheck className="w-3.5 h-3.5 text-cyan-400" /> Rol Activo
             </span>
             <span className="font-mono text-[10px] uppercase px-1.5 py-0.5 rounded bg-surface border border-border-subtle text-content-primary">
-              {currentUser.role}
+              {currentUser?.role || 'admin'}
             </span>
           </div>
         )}
 
         <div className="flex items-center gap-3">
-          <Avatar name={currentUser.displayName} photoURL={currentUser.photoURL} size="sm" ring />
+          <Avatar name={currentUser?.displayName || 'Usuario'} photoURL={currentUser?.photoURL} size="sm" ring />
           {!collapsed && (
             <div className="flex-1 overflow-hidden">
-              <p className="text-xs font-semibold text-content-primary truncate">{currentUser.displayName}</p>
-              <p className="text-[11px] text-content-muted truncate">{currentUser.title}</p>
+              <p className="text-xs font-semibold text-content-primary truncate">{currentUser?.displayName || 'Usuario'}</p>
+              <p className="text-[11px] text-content-muted truncate">{currentUser?.title || 'Personal IT'}</p>
             </div>
           )}
         </div>

@@ -51,7 +51,7 @@ export const DashboardView: React.FC = () => {
         >
           <div>
             <h1 className="text-xl lg:text-2xl font-bold text-content-primary tracking-tight">
-              Buenos días, <span className="text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-blue-500">{currentUser.displayName.split(' ')[0]}</span>
+              Buenos días, <span className="text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-blue-500">{currentUser?.displayName ? currentUser.displayName.split(' ')[0] : (currentUser?.email ? currentUser.email.split('@')[0] : 'Usuario')}</span>
             </h1>
             <p className="text-sm text-content-secondary mt-1 capitalize">{todayStr}</p>
           </div>
