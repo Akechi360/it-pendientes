@@ -137,10 +137,11 @@ export async function updateDocument<T>(
   data: Partial<T>
 ): Promise<void> {
   try {
-    const payload = toSnake({
-      ...data,
-      updatedAt: new Date().toISOString(),
-    } as Record<string, unknown>);
+    const payloadData: Record<string, unknown> = { ...data as Record<string, unknown> };
+    if (tableName !== 'notifications' && tableName !== 'activity_logs') {
+      payloadData.updatedAt = new Date().toISOString();
+    }
+    const payload = toSnake(payloadData);
     const { error } = await supabase.from(tableName).update(payload).eq('id', id);
     if (error) throw error;
   } catch (error) {
@@ -224,39 +225,24 @@ export async function upsertUserProfile(profile: UserProfile): Promise<void> {
 // OneSignal Push Notification Sender
 // ─────────────────────────────────────────────────────────────
 export async function sendOneSignalPush(targetUserId: string, title: string, message: string): Promise<void> {
-  const appId = import.meta.env.VITE_ONESIGNAL_APP_ID;
-  const restApiKey = import.meta.env.VITE_ONESIGNAL_REST_KEY;
-
-  if (!appId || !restApiKey) {
-    console.warn('[OneSignal] Missing APP_ID or REST_KEY. Cannot send push notification.');
-    return;
-  }
-
   try {
-    const response = await fetch('https://api.onesignal.com/notifications', {
+    const response = await fetch('/api/send-push', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': `Key ${restApiKey}`,
-        'Accept': 'application/json'
       },
       body: JSON.stringify({
-        app_id: appId,
-        target_channel: 'push',
-        include_aliases: {
-          external_id: [targetUserId]
-        },
-        headings: { en: title },
-        contents: { en: message },
-        url: window.location.origin
+        targetUserId,
+        title,
+        message
       })
     });
     
     if (!response.ok) {
       const errorText = await response.text();
-      console.error('[OneSignal] Error sending push:', errorText);
+      console.error('[OneSignal] Error sending push via Vercel Function:', errorText);
     }
   } catch (err) {
-    console.error('[OneSignal] Network error sending push:', err);
+    console.error('[OneSignal] Network error sending push via Vercel Function:', err);
   }
 }
