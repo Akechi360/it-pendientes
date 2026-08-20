@@ -27,9 +27,7 @@ export default async function handler(req, res) {
       body: JSON.stringify({
         app_id: appId,
         target_channel: 'push',
-        include_aliases: {
-          external_id: [targetUserId]
-        },
+        include_external_user_ids: [targetUserId],
         headings: { en: title, es: title },
         contents: { en: message, es: message },
       })
