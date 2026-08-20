@@ -219,42 +219,44 @@ export async function upsertUserProfile(profile: UserProfile): Promise<void> {
     console.warn('[Supabase] No se pudo guardar perfil de usuario:', err);
   }
 }
- 
- / /    % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % 
- / /   O n e S i g n a l   P u s h   N o t i f i c a t i o n   S e n d e r  
- / /    % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % 
- e x p o r t   a s y n c   f u n c t i o n   s e n d O n e S i g n a l P u s h ( t a r g e t U s e r I d :   s t r i n g ,   t i t l e :   s t r i n g ,   m e s s a g e :   s t r i n g ) :   P r o m i s e < v o i d >   {  
-     c o n s t   a p p I d   =   i m p o r t . m e t a . e n v . V I T E _ O N E S I G N A L _ A P P _ I D ;  
-     c o n s t   r e s t A p i K e y   =   i m p o r t . m e t a . e n v . V I T E _ O N E S I G N A L _ R E S T _ K E Y ;  
-     i f   ( ! a p p I d   | |   ! r e s t A p i K e y )   {  
-         c o n s o l e . w a r n ( ' [ O n e S i g n a l ]   M i s s i n g   A P P _ I D   o r   R E S T _ K E Y .   C a n n o t   s e n d   p u s h   n o t i f i c a t i o n . ' ) ;  
-         r e t u r n ;  
-     }  
-     t r y   {  
-         c o n s t   r e s p o n s e   =   a w a i t   f e t c h ( ' h t t p s : / / a p i . o n e s i g n a l . c o m / n o t i f i c a t i o n s ' ,   {  
-             m e t h o d :   ' P O S T ' ,  
-             h e a d e r s :   {  
-                 ' C o n t e n t - T y p e ' :   ' a p p l i c a t i o n / j s o n ' ,  
-                 ' A u t h o r i z a t i o n ' :   \ K e y   \ \ ,  
-                 ' A c c e p t ' :   ' a p p l i c a t i o n / j s o n '  
-             } ,  
-             b o d y :   J S O N . s t r i n g i f y ( {  
-                 a p p _ i d :   a p p I d ,  
-                 t a r g e t _ c h a n n e l :   ' p u s h ' ,  
-                 i n c l u d e _ a l i a s e s :   {  
-                     e x t e r n a l _ i d :   [ t a r g e t U s e r I d ]  
-                 } ,  
-                 h e a d i n g s :   {   e n :   t i t l e   } ,  
-                 c o n t e n t s :   {   e n :   m e s s a g e   } ,  
-                 u r l :   w i n d o w . l o c a t i o n . o r i g i n  
-             } )  
-         } ) ;  
-         i f   ( ! r e s p o n s e . o k )   {  
-             c o n s t   e r r o r T e x t   =   a w a i t   r e s p o n s e . t e x t ( ) ;  
-             c o n s o l e . e r r o r ( ' [ O n e S i g n a l ]   E r r o r   s e n d i n g   p u s h : ' ,   e r r o r T e x t ) ;  
-         }  
-     }   c a t c h   ( e r r )   {  
-         c o n s o l e . e r r o r ( ' [ O n e S i g n a l ]   N e t w o r k   e r r o r   s e n d i n g   p u s h : ' ,   e r r ) ;  
-     }  
- }  
- 
+
+// ─────────────────────────────────────────────────────────────
+// OneSignal Push Notification Sender
+// ─────────────────────────────────────────────────────────────
+export async function sendOneSignalPush(targetUserId: string, title: string, message: string): Promise<void> {
+  const appId = import.meta.env.VITE_ONESIGNAL_APP_ID;
+  const restApiKey = import.meta.env.VITE_ONESIGNAL_REST_KEY;
+
+  if (!appId || !restApiKey) {
+    console.warn('[OneSignal] Missing APP_ID or REST_KEY. Cannot send push notification.');
+    return;
+  }
+
+  try {
+    const response = await fetch('https://api.onesignal.com/notifications', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Key ${restApiKey}`,
+        'Accept': 'application/json'
+      },
+      body: JSON.stringify({
+        app_id: appId,
+        target_channel: 'push',
+        include_aliases: {
+          external_id: [targetUserId]
+        },
+        headings: { en: title },
+        contents: { en: message },
+        url: window.location.origin
+      })
+    });
+    
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error('[OneSignal] Error sending push:', errorText);
+    }
+  } catch (err) {
+    console.error('[OneSignal] Network error sending push:', err);
+  }
+}
