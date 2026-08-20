@@ -12,9 +12,31 @@ const LoadingScreen: React.FC = () => (
   </div>
 );
 
-// ─── Puerta de autenticación ───
 const AppGate: React.FC = () => {
   const { currentUser, loading } = useAuth();
+
+  React.useEffect(() => {
+    if (loading) return;
+    import('react-onesignal').then(({ default: OneSignal }) => {
+      const handleAuth = () => {
+        if (currentUser) {
+          OneSignal.login(currentUser.uid).catch(console.error);
+        } else {
+          OneSignal.logout().catch(console.error);
+        }
+      };
+
+      // Check if initialized. The React OneSignal wrapper exposes `initialized` boolean property.
+      if (!OneSignal.initialized) {
+        OneSignal.init({
+          appId: 'd1338b94-ffbe-4c72-8a96-b9ca075f7147',
+          allowLocalhostAsSecureOrigin: true,
+        }).then(handleAuth).catch(console.error);
+      } else {
+        handleAuth();
+      }
+    });
+  }, [currentUser, loading]);
 
   if (loading) return <LoadingScreen />;
   if (!currentUser) return <LoginPage />;
@@ -28,16 +50,6 @@ const AppGate: React.FC = () => {
 
 // ─── Raíz de la aplicación ───
 export default function App() {
-  React.useEffect(() => {
-    import('react-onesignal').then(({ default: OneSignal }) => {
-      OneSignal.init({
-        appId: 'd1338b94-ffbe-4c72-8a96-b9ca075f7147',
-        allowLocalhostAsSecureOrigin: true,
-      }).catch(err => {
-        console.error('OneSignal Init Error:', err);
-      });
-    });
-  }, []);
 
   return (
     <AuthProvider>
