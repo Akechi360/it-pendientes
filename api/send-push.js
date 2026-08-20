@@ -1,4 +1,4 @@
-﻿export default async function handler(req, res) {
+export default async function handler(req, res) {
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method Not Allowed' });
   }
@@ -21,7 +21,7 @@
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': \Key \\,
+        'Authorization': 'Key ' + restApiKey,
         'Accept': 'application/json'
       },
       body: JSON.stringify({
