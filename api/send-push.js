@@ -26,9 +26,7 @@ export default async function handler(req, res) {
       },
       body: JSON.stringify({
         app_id: appId,
-        filters: [
-          { field: "tag", key: "uid", relation: "=", value: targetUserId }
-        ],
+        included_segments: ['Total Subscriptions'],
         headings: { en: title, es: title },
         contents: { en: message, es: message },
       })
