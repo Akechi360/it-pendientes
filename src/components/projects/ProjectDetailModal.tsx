@@ -10,14 +10,17 @@ import {
   FolderArchive,
   TrendingUp,
   Clock,
-  Plus
+  Plus,
+  Trash2
 } from 'lucide-react';
 import { useApp } from '../../context/AppContext';
-import { updateDocument } from '../../services/supabaseService';
+import { useAuth } from '../../context/AuthContext';
+import { updateDocument, deleteDocument } from '../../services/supabaseService';
 import { ProjectItem } from '../../types';
 
 export const ProjectDetailModal: React.FC = () => {
   const { selectedProject, setSelectedProject, tasks, incidents, documents, toast, isDarkTheme } = useApp();
+  const { currentUser } = useAuth();
   const [activeTab, setActiveTab] = useState<'resumen' | 'tareas' | 'incidencias' | 'documentos'>('resumen');
   const [progressInput, setProgressInput] = useState<number>(selectedProject?.progress || 0);
 
@@ -34,6 +37,17 @@ export const ProjectDetailModal: React.FC = () => {
       toast(`Progreso actualizado a ${newProgress}%`, 'success');
     } catch (err) {
       toast('Error al actualizar progreso', 'error');
+    }
+  };
+
+  const handleDelete = async () => {
+    if (!window.confirm('¿Estás seguro de eliminar este proyecto? Esta acción no se puede deshacer.')) return;
+    try {
+      await deleteDocument('projects', selectedProject.id);
+      toast('Proyecto eliminado', 'success');
+      handleClose();
+    } catch (err) {
+      toast('Error al eliminar proyecto', 'error');
     }
   };
 
@@ -55,9 +69,16 @@ export const ProjectDetailModal: React.FC = () => {
             </span>
             <h2 className="text-lg font-bold text-white">{selectedProject.name}</h2>
           </div>
-          <button onClick={handleClose} className="p-2 rounded-lg text-slate-400 hover:text-white">
-            <X className="w-5 h-5" />
-          </button>
+          <div className="flex items-center gap-2">
+            {currentUser?.role === 'admin' && (
+              <button onClick={handleDelete} className="p-2 rounded-lg bg-rose-500/10 text-rose-400 hover:bg-rose-500/20 transition-all" title="Eliminar proyecto">
+                <Trash2 className="w-5 h-5" />
+              </button>
+            )}
+            <button onClick={handleClose} className="p-2 rounded-lg text-slate-400 hover:text-white transition-all">
+              <X className="w-5 h-5" />
+            </button>
+          </div>
         </div>
 
         {/* Tab Navigation */}

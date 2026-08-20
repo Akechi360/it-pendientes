@@ -6,10 +6,12 @@ import {
   Clock,
   CheckSquare,
   Video,
-  MapPin
+  MapPin,
+  Trash2
 } from 'lucide-react';
 import { useApp } from '../../context/AppContext';
-import { createDocument } from '../../services/supabaseService';
+import { useAuth } from '../../context/AuthContext';
+import { createDocument, deleteDocument } from '../../services/supabaseService';
 import { TaskItem } from '../../types';
 import { EntityPageHeader } from '../shared/EntityPageHeader';
 import { formatDate } from '../../utils/dateUtils';
@@ -17,41 +19,52 @@ import { StatusBadge } from '../shared/StatusBadge';
 
 export const MeetingsView: React.FC = () => {
   const { meetings, setIsCreateMeetingOpen, toast } = useApp();
+  const { currentUser } = useAuth();
   const [searchQuery, setSearchQuery] = useState('');
 
   const filteredMeetings = meetings.filter((m) => m.title.toLowerCase().includes(searchQuery.toLowerCase()) || m.id.toLowerCase().includes(searchQuery.toLowerCase()));
 
+  const handleDelete = async (id: string) => {
+    if (!window.confirm('¿Estás seguro de eliminar esta reunión?')) return;
+    try {
+      await deleteDocument('meetings', id);
+      toast('Reunión eliminada', 'success');
+    } catch (err) {
+      toast('Error al eliminar', 'error');
+    }
+  };
+
   const handleCreateTaskFromCommitment = async (meetingTitle: string, commitmentText: string) => {
     const year = new Date().getFullYear();
     const randStr = Math.floor(1000 + Math.random() * 9000).toString();
-    const taskId = `TASK-${year}-${randStr}`;
+    const taskId = `TSK-${year}-${randStr}`;
 
     const newTask: TaskItem = {
       id: taskId,
-      title: commitmentText,
-      description: `Acuerdo derivado de la reunión: ${meetingTitle}`,
+      title: `[Compromiso] ${meetingTitle}`,
+      description: commitmentText,
       status: 'pendiente',
       priority: 'media',
-      category: 'administracion',
-      assigneeId: 'usr_admin_01',
-      assigneeName: 'Carlos Mendoza',
-      creatorId: 'usr_admin_01',
-      creatorName: 'Carlos Mendoza',
+      category: 'proyecto',
+      assigneeId: 'unassigned',
+      assigneeName: 'Sin Asignar',
+      creatorId: 'sys',
+      creatorName: 'Sistema',
       dueDate: new Date().toISOString().split('T')[0],
-      tags: ['AcuerdoReunión'],
+      tags: ['Reunión'],
       checklist: [],
       comments: [],
       isBlocked: false,
       isFocused: false,
       isArchived: false,
-      organizationId: 'org_sistemas_main',
+      organizationId: meetings[0]?.organizationId || 'IT-01',
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString()
     };
 
     try {
       await createDocument('tasks', newTask);
-      toast(`Tarea ${taskId} creada desde acuerdo de reunión`, 'success');
+      toast(`Compromiso convertido a tarea ${taskId}`, 'success');
     } catch (err) {
       toast('Error al crear tarea', 'error');
     }
@@ -91,11 +104,20 @@ export const MeetingsView: React.FC = () => {
           filteredMeetings.map((meeting) => (
             <div
               key={meeting.id}
-              className="flex flex-col lg:flex-row gap-4 p-5 rounded-2xl border border-border-subtle bg-surface hover:border-violet-500/30 transition-colors shadow-sm group"
+              className="flex flex-col lg:flex-row gap-4 p-5 rounded-2xl border border-border-subtle bg-surface hover:border-violet-500/30 transition-colors shadow-sm group relative"
             >
+              {currentUser?.role === 'admin' && (
+                <button
+                  onClick={() => handleDelete(meeting.id)}
+                  className="absolute top-4 right-4 p-1.5 text-rose-500/50 hover:text-rose-500 hover:bg-rose-500/10 rounded transition-colors"
+                  title="Eliminar reunión"
+                >
+                  <Trash2 className="w-4 h-4" />
+                </button>
+              )}
               {/* Left Column: Info */}
               <div className="flex-1 space-y-3">
-                <div className="flex items-center gap-3 flex-wrap">
+                <div className="flex items-center gap-3 flex-wrap pr-8">
                   <span className="font-mono text-xs font-bold text-violet-400 bg-violet-500/10 px-2 py-0.5 rounded border border-violet-500/20">
                     {meeting.id}
                   </span>

@@ -8,11 +8,12 @@ import {
   MessageSquare,
   User,
   ShieldAlert,
-  CheckSquare
+  CheckSquare,
+  Trash2
 } from 'lucide-react';
 import { useApp } from '../../context/AppContext';
 import { useAuth } from '../../context/AuthContext';
-import { updateDocument, createDocument, logActivity } from '../../services/supabaseService';
+import { updateDocument, createDocument, deleteDocument, logActivity } from '../../services/supabaseService';
 import { IncidentStatus, TaskItem } from '../../types';
 
 export const IncidentDetailModal: React.FC = () => {
@@ -68,6 +69,7 @@ export const IncidentDetailModal: React.FC = () => {
     };
 
     const updatedComments = [...(selectedIncident.comments || []), commentObj];
+    
     try {
       await updateDocument('incidents', selectedIncident.id, { comments: updatedComments });
       setSelectedIncident({ ...selectedIncident, comments: updatedComments });
@@ -81,23 +83,23 @@ export const IncidentDetailModal: React.FC = () => {
   const handleConvertToTask = async () => {
     const year = new Date().getFullYear();
     const randStr = Math.floor(1000 + Math.random() * 9000).toString();
-    const taskId = `TASK-${year}-${randStr}`;
+    const taskId = `TSK-${year}-${randStr}`;
 
     const newTask: TaskItem = {
       id: taskId,
       title: `[Resolver Incidencia ${selectedIncident.id}] ${selectedIncident.title}`,
       description: `Derivado de Incidencia ${selectedIncident.id}:\n${selectedIncident.description}`,
-      status: 'pendiente',
       priority: selectedIncident.priority,
-      category: 'soporte',
-      assigneeId: selectedIncident.assigneeId,
-      assigneeName: selectedIncident.assigneeName,
+      status: 'pendiente',
       creatorId: currentUser.uid,
       creatorName: currentUser.displayName,
-      dueDate: new Date().toISOString().split('T')[0],
-      tags: ['Incidencia', selectedIncident.id],
+      assigneeId: selectedIncident.assigneeId,
+      assigneeName: selectedIncident.assigneeName,
+      category: 'soporte',
+      dueDate: selectedIncident.slaDueDate?.split('T')[0] || new Date().toISOString().split('T')[0],
       checklist: [],
       comments: selectedIncident.comments,
+      tags: ['Incidencia', selectedIncident.id],
       isBlocked: false,
       isFocused: false,
       isArchived: false,
@@ -113,6 +115,17 @@ export const IncidentDetailModal: React.FC = () => {
       handleClose();
     } catch (err) {
       toast('Error al convertir a tarea', 'error');
+    }
+  };
+
+  const handleDelete = async () => {
+    if (!window.confirm('¿Estás seguro de eliminar esta incidencia? Esta acción no se puede deshacer.')) return;
+    try {
+      await deleteDocument('incidents', selectedIncident.id);
+      toast('Incidencia eliminada', 'success');
+      handleClose();
+    } catch (err) {
+      toast('Error al eliminar', 'error');
     }
   };
 
@@ -136,6 +149,11 @@ export const IncidentDetailModal: React.FC = () => {
             </span>
           </div>
           <div className="flex items-center gap-2">
+            {currentUser?.role === 'admin' && (
+              <button onClick={handleDelete} className="p-2 rounded-lg bg-rose-500/10 text-rose-400 hover:bg-rose-500/20 transition-all" title="Eliminar incidencia">
+                <Trash2 className="w-5 h-5" />
+              </button>
+            )}
             <button
               onClick={handleConvertToTask}
               className="px-3 py-1.5 rounded-lg bg-cyan-500/10 text-cyan-400 hover:bg-cyan-500/20 text-xs font-semibold flex items-center gap-1 transition-all"

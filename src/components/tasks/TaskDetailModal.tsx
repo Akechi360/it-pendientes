@@ -235,6 +235,17 @@ export const TaskDetailModal: React.FC = () => {
     }
   };
 
+  const handleDelete = async () => {
+    if (!window.confirm('¿Estás seguro de eliminar esta tarea? Esta acción no se puede deshacer.')) return;
+    try {
+      await deleteDocument('tasks', selectedTask.id);
+      toast('Tarea eliminada', 'success');
+      handleClose();
+    } catch (err) {
+      toast('Error al eliminar', 'error');
+    }
+  };
+
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-sm animate-in fade-in duration-200">
       <div
@@ -269,6 +280,15 @@ export const TaskDetailModal: React.FC = () => {
           </div>
 
           <div className="flex items-center gap-2">
+            {currentUser?.role === 'admin' && (
+              <button
+                onClick={handleDelete}
+                className="p-2 rounded-lg bg-rose-500/10 text-rose-400 hover:bg-rose-500/20 transition-all"
+                title="Eliminar tarea"
+              >
+                <Trash2 className="w-4 h-4" />
+              </button>
+            )}
             <button
               onClick={handleDuplicate}
               className="p-2 rounded-lg bg-slate-800 text-slate-300 hover:text-white transition-all"

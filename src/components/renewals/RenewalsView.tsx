@@ -2,9 +2,12 @@ import React, { useState } from 'react';
 import {
   RefreshCw,
   Search,
-  DollarSign
+  DollarSign,
+  Trash2
 } from 'lucide-react';
 import { useApp } from '../../context/AppContext';
+import { useAuth } from '../../context/AuthContext';
+import { deleteDocument } from '../../services/supabaseService';
 import { EntityPageHeader } from '../shared/EntityPageHeader';
 import { StatusBadge } from '../shared/StatusBadge';
 import { AssigneeAvatar } from '../shared/AssigneeAvatar';
@@ -12,9 +15,21 @@ import { DueDateIndicator } from '../shared/DueDateIndicator';
 
 export const RenewalsView: React.FC = () => {
   const { renewals, toast } = useApp();
+  const { currentUser } = useAuth();
   const [searchQuery, setSearchQuery] = useState('');
 
   const filteredRenewals = renewals.filter((r) => r.title.toLowerCase().includes(searchQuery.toLowerCase()) || r.vendor.toLowerCase().includes(searchQuery.toLowerCase()));
+
+  const handleDelete = async (id: string, e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (!window.confirm('¿Estás seguro de eliminar esta renovación?')) return;
+    try {
+      await deleteDocument('renewals', id);
+      toast('Renovación eliminada', 'success');
+    } catch (err) {
+      toast('Error al eliminar', 'error');
+    }
+  };
 
   return (
     <div className="space-y-6 pb-12 animate-in fade-in duration-300">
@@ -23,7 +38,7 @@ export const RenewalsView: React.FC = () => {
         title="Control de Compras & Renovaciones"
         description="Gestión de vencimientos de licencias, dominios, certificados SSL, garantías y suscripciones de software."
         actionLabel="Registrar Renovación"
-        onAction={() => toast('Modal de renovaciones en construcción', 'info')}
+        onAction={() => toast('Funcionalidad en desarrollo', 'info')}
       />
 
       {/* Filter Bar */}
@@ -34,30 +49,31 @@ export const RenewalsView: React.FC = () => {
             type="text"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder="Buscar por servicio o proveedor..."
+            placeholder="Buscar por título o proveedor..."
             className="w-full pl-8 pr-3 py-1.5 rounded-lg bg-surface-raised border border-border-subtle text-xs text-content-primary placeholder-content-muted focus:outline-none focus:border-violet-500/50"
           />
         </div>
       </div>
 
-      {/* TABLE VIEW */}
+      {/* Renewals Table */}
       <div className="rounded-xl border border-border-subtle overflow-hidden bg-surface shadow-sm">
         <div className="overflow-x-auto custom-scrollbar">
           <table className="w-full text-left text-xs whitespace-nowrap">
             <thead className="bg-surface-raised text-content-muted font-mono text-[10px] uppercase border-b border-border-subtle">
               <tr>
                 <th className="px-4 py-3 font-semibold">Estado</th>
-                <th className="px-4 py-3 font-semibold">ID / Servicio</th>
+                <th className="px-4 py-3 font-semibold">Ítem</th>
                 <th className="px-4 py-3 font-semibold">Proveedor</th>
-                <th className="px-4 py-3 font-semibold">Costo Est.</th>
+                <th className="px-4 py-3 font-semibold">Costo Aprox.</th>
                 <th className="px-4 py-3 font-semibold">Frecuencia</th>
                 <th className="px-4 py-3 font-semibold">Responsable</th>
                 <th className="px-4 py-3 font-semibold">Vencimiento</th>
+                {currentUser?.role === 'admin' && <th className="px-4 py-3 font-semibold"></th>}
               </tr>
             </thead>
             <tbody className="divide-y divide-border-subtle text-content-secondary">
               {filteredRenewals.length === 0 ? (
-                <tr><td colSpan={7} className="text-center py-10">No hay resultados</td></tr>
+                <tr><td colSpan={currentUser?.role === 'admin' ? 8 : 7} className="text-center py-10">No hay resultados</td></tr>
               ) : (
                 filteredRenewals.map((renewal) => (
                   <tr
@@ -89,6 +105,17 @@ export const RenewalsView: React.FC = () => {
                     <td className="px-4 py-3">
                       <DueDateIndicator date={renewal.renewalDate} />
                     </td>
+                    {currentUser?.role === 'admin' && (
+                      <td className="px-4 py-3 text-right">
+                        <button
+                          onClick={(e) => handleDelete(renewal.id, e)}
+                          className="p-1.5 text-rose-500/50 hover:text-rose-400 hover:bg-rose-500/10 rounded transition-colors"
+                          title="Eliminar renovación"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      </td>
+                    )}
                   </tr>
                 ))
               )}

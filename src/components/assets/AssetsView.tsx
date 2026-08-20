@@ -3,11 +3,12 @@ import {
   Server,
   Search,
   Cpu,
-  Globe
+  Globe,
+  Trash2
 } from 'lucide-react';
 import { useApp } from '../../context/AppContext';
 import { useAuth } from '../../context/AuthContext';
-import { createDocument, logActivity } from '../../services/supabaseService';
+import { createDocument, logActivity, deleteDocument } from '../../services/supabaseService';
 import { AssetItem, AssetType } from '../../types';
 import { EntityPageHeader } from '../shared/EntityPageHeader';
 import { StatusBadge } from '../shared/StatusBadge';
@@ -85,7 +86,6 @@ export const AssetsView: React.FC = () => {
 
       toast(`Importando ${parsedAssets.length} activos...`, 'info');
       
-      // Batch insertion sequentially to avoid overwhelming
       for (const asset of parsedAssets) {
         await createDocument('assets', asset);
       }
@@ -98,6 +98,16 @@ export const AssetsView: React.FC = () => {
     } finally {
       setIsUploading(false);
       if (e.target) e.target.value = ''; // Reset input
+    }
+  };
+
+  const handleDelete = async (id: string) => {
+    if (!window.confirm('¿Estás seguro de eliminar este activo del inventario?')) return;
+    try {
+      await deleteDocument('assets', id);
+      toast('Activo eliminado exitosamente', 'success');
+    } catch (err) {
+      toast('Error al eliminar', 'error');
     }
   };
 
@@ -218,11 +228,12 @@ export const AssetsView: React.FC = () => {
                 <th className="px-4 py-3 font-semibold">Dirección IP</th>
                 <th className="px-4 py-3 font-semibold">Número de Serie</th>
                 <th className="px-4 py-3 font-semibold">Ubicación</th>
+                {currentUser?.role === 'admin' && <th className="px-4 py-3 font-semibold text-right">Acciones</th>}
               </tr>
             </thead>
             <tbody className="divide-y divide-border-subtle text-content-secondary">
               {filteredAssets.length === 0 ? (
-                 <tr><td colSpan={7} className="text-center py-10">No hay activos</td></tr>
+                 <tr><td colSpan={currentUser?.role === 'admin' ? 8 : 7} className="text-center py-10">No hay activos</td></tr>
               ) : (
                 filteredAssets.map((asset) => (
                   <tr key={asset.id} className="hover:bg-surface-hover transition-colors group">
@@ -235,6 +246,17 @@ export const AssetsView: React.FC = () => {
                     <td className="px-4 py-3 font-mono text-cyan-400 text-[11px]">{asset.ipAddress && asset.ipAddress !== 'N/A' ? asset.ipAddress : <span className="text-content-muted">N/A</span>}</td>
                     <td className="px-4 py-3 font-mono text-content-muted text-[11px]">{asset.serialNumber}</td>
                     <td className="px-4 py-3 text-[11px]">{asset.location}</td>
+                    {currentUser?.role === 'admin' && (
+                      <td className="px-4 py-3 text-right">
+                        <button
+                          onClick={() => handleDelete(asset.id)}
+                          className="p-1.5 text-rose-500/50 hover:text-rose-400 hover:bg-rose-500/10 rounded transition-colors"
+                          title="Eliminar activo"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      </td>
+                    )}
                   </tr>
                 ))
               )}

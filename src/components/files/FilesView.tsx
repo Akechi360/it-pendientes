@@ -5,11 +5,12 @@ import {
   Upload,
   Search,
   Download,
-  Plus
+  Plus,
+  Trash2
 } from 'lucide-react';
 import { useApp } from '../../context/AppContext';
 import { useAuth } from '../../context/AuthContext';
-import { createDocument, logActivity } from '../../services/supabaseService';
+import { createDocument, logActivity, deleteDocument } from '../../services/supabaseService';
 import { supabase } from '../../lib/supabase';
 import { EntityPageHeader } from '../shared/EntityPageHeader';
 import { formatDate } from '../../utils/dateUtils';
@@ -27,35 +28,48 @@ export const FilesView: React.FC = () => {
     f.module.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
-  const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const selectedFile = e.target.files?.[0];
-    if (!selectedFile || !currentUser) return;
+  const handleDelete = async (file: FileItem) => {
+    if (!window.confirm(`¿Estás seguro de eliminar el archivo "${file.name}"?`)) return;
+    try {
+      if (file.url.includes('supabase.co')) {
+        const path = file.url.split('/').pop();
+        if (path) {
+          await supabase.storage.from('files').remove([path]);
+        }
+      }
+      await deleteDocument('files', file.id);
+      toast('Archivo eliminado', 'success');
+    } catch (err) {
+      toast('Error al eliminar archivo', 'error');
+    }
+  };
+
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file || !currentUser) return;
 
     setIsUploading(true);
     try {
-      let fileUrl = '';
-      const filePath = `uploads/${Date.now()}_${selectedFile.name}`;
+      const fileExt = file.name.split('.').pop();
+      const fileName = `${Math.random()}.${fileExt}`;
+      const filePath = `${currentUser.organizationId}/${fileName}`;
 
-      // Intentar subir a Supabase Storage
-      const { data: storageData, error: storageErr } = await supabase.storage
-        .from('documents')
-        .upload(filePath, selectedFile);
+      const { error: uploadError } = await supabase.storage
+        .from('files')
+        .upload(filePath, file);
 
-      if (!storageErr && storageData) {
-        const { data: publicUrlData } = supabase.storage.from('documents').getPublicUrl(filePath);
-        fileUrl = publicUrlData.publicUrl;
-      } else {
-        // Fallback local mediante URL de objeto para previsualización inmediata
-        fileUrl = URL.createObjectURL(selectedFile);
-      }
+      if (uploadError) throw uploadError;
 
-      const fileId = `FILE-${Date.now().toString().slice(-6)}`;
+      const { data: { publicUrl } } = supabase.storage
+        .from('files')
+        .getPublicUrl(filePath);
+
       const newFile: FileItem = {
-        id: fileId,
-        name: selectedFile.name,
-        size: selectedFile.size,
-        type: selectedFile.type || 'application/octet-stream',
-        url: fileUrl,
+        id: `FILE-${Date.now()}`,
+        name: file.name,
+        url: publicUrl,
+        size: file.size,
+        type: file.type,
         module: 'general',
         uploadedBy: currentUser.displayName,
         organizationId: currentUser.organizationId,
@@ -63,12 +77,11 @@ export const FilesView: React.FC = () => {
       };
 
       await createDocument('files', newFile);
-      await logActivity(currentUser.uid, currentUser.displayName, currentUser.role, 'Subida de Archivo', 'Archivos', fileId, selectedFile.name, `Archivo de ${(selectedFile.size / 1024).toFixed(1)} KB subido.`);
-
-      toast(`Archivo ${selectedFile.name} subido exitosamente`, 'success');
+      await logActivity(currentUser.uid, currentUser.displayName, currentUser.role, 'Subida de Archivo', 'Archivos', newFile.id, file.name, 'Archivo subido al repositorio.');
+      toast('Archivo subido correctamente', 'success');
     } catch (err) {
+      toast('Error al subir el archivo', 'error');
       console.error(err);
-      toast('Error al procesar el archivo', 'error');
     } finally {
       setIsUploading(false);
       if (fileInputRef.current) fileInputRef.current.value = '';
@@ -76,35 +89,25 @@ export const FilesView: React.FC = () => {
   };
 
   const handleDownload = (file: FileItem) => {
-    if (!file.url) {
-      toast('El archivo no posee una URL de descarga válida', 'warning');
-      return;
-    }
-    const link = document.createElement('a');
-    link.href = file.url;
-    link.download = file.name;
-    link.target = '_blank';
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    toast(`Descargando ${file.name}...`, 'info');
+    window.open(file.url, '_blank');
   };
 
   return (
     <div className="space-y-6 pb-12 animate-in fade-in duration-300">
-      <input
-        type="file"
-        ref={fileInputRef}
-        onChange={handleFileSelect}
-        className="hidden"
-      />
-
       <EntityPageHeader 
         icon={<Folder className="w-5 h-5" />}
-        title="Gestor de Archivos & Adjuntos"
-        description="Almacenamiento central de diagramas, contratos, políticas y ejecutables de la organización."
+        title="Repositorio Central de Archivos"
+        description="Almacenamiento seguro de manuales, diagramas, scripts y configuraciones de equipos."
         actionLabel={isUploading ? "Subiendo..." : "Subir Archivo"}
         onAction={() => fileInputRef.current?.click()}
+      />
+      
+      <input 
+        type="file" 
+        ref={fileInputRef} 
+        onChange={handleFileUpload} 
+        className="hidden" 
+        disabled={isUploading}
       />
 
       {/* Filter Bar */}
@@ -115,7 +118,7 @@ export const FilesView: React.FC = () => {
             type="text"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder="Buscar archivos por nombre o módulo..."
+            placeholder="Buscar por nombre o módulo..."
             className="w-full pl-8 pr-3 py-1.5 rounded-lg bg-surface-raised border border-border-subtle text-xs text-content-primary placeholder-content-muted focus:outline-none focus:border-cyan-500/50"
           />
         </div>
@@ -150,13 +153,24 @@ export const FilesView: React.FC = () => {
                     <td className="px-4 py-3">{file.uploadedBy}</td>
                     <td className="px-4 py-3 font-mono text-[11px]">{formatDate(file.createdAt)}</td>
                     <td className="px-4 py-3 text-right">
-                      <button
-                        onClick={() => handleDownload(file)}
-                        className="p-1.5 rounded-lg bg-surface-raised border border-border-subtle hover:bg-surface-hover text-cyan-400 transition-colors"
-                        title="Descargar archivo"
-                      >
-                        <Download className="w-3.5 h-3.5" />
-                      </button>
+                      <div className="flex justify-end gap-2">
+                        {currentUser?.role === 'admin' && (
+                          <button
+                            onClick={() => handleDelete(file)}
+                            className="p-1.5 rounded-lg bg-surface-raised border border-border-subtle hover:bg-rose-500/10 text-rose-500/50 hover:text-rose-400 transition-colors"
+                            title="Eliminar archivo"
+                          >
+                            <Trash2 className="w-3.5 h-3.5" />
+                          </button>
+                        )}
+                        <button
+                          onClick={() => handleDownload(file)}
+                          className="p-1.5 rounded-lg bg-surface-raised border border-border-subtle hover:bg-surface-hover text-cyan-400 transition-colors"
+                          title="Descargar archivo"
+                        >
+                          <Download className="w-3.5 h-3.5" />
+                        </button>
+                      </div>
                     </td>
                   </tr>
                 ))
