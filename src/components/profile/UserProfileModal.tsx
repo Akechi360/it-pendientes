@@ -232,6 +232,36 @@ export const UserProfileModal: React.FC = () => {
                     <p className="text-[10px] text-content-secondary mt-1">El correo está vinculado a la autenticación centralizada y no puede modificarse.</p>
                   </div>
 
+                  <div className="pt-4 border-t border-border-subtle mt-6">
+                    <label className="block text-[10px] font-bold text-content-muted uppercase tracking-wider mb-2">Notificaciones Push</label>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        if ('Notification' in window) {
+                          Notification.requestPermission().then(permission => {
+                            if (permission === 'granted') {
+                              toast('Permiso concedido. Las notificaciones Push están activas.', 'success');
+                            } else {
+                              toast('Permiso denegado por el navegador/sistema.', 'error');
+                            }
+                          });
+                        } else {
+                          toast('Este navegador no soporta notificaciones', 'error');
+                        }
+                      }}
+                      className="w-full flex items-center justify-between px-4 py-3 rounded-xl border border-border-subtle bg-surface-raised hover:bg-surface-hover transition-all"
+                    >
+                      <div className="flex items-center gap-2 text-content-primary">
+                        <Bell className="w-4 h-4 text-cyan-400" />
+                        <span className="text-sm font-semibold">Activar notificaciones en este dispositivo</span>
+                      </div>
+                      <span className="text-[10px] bg-cyan-500/10 text-cyan-400 px-2 py-0.5 rounded font-mono border border-cyan-500/20">Permitir</span>
+                    </button>
+                    <p className="text-[10px] text-content-secondary mt-2 leading-relaxed">
+                      Si usas tu teléfono o celular, debes usar este botón para darle permiso explícito a la aplicación para que te envíe alertas al sistema.
+                    </p>
+                  </div>
+
                   <div className="pt-4 border-t border-border-subtle flex items-center justify-end gap-3 mt-8">
                     <button
                       type="button"
