@@ -12,6 +12,7 @@ import { TaskDetailModal } from '../tasks/TaskDetailModal';
 import { IncidentDetailModal } from '../incidents/IncidentDetailModal';
 import { ProjectDetailModal } from '../projects/ProjectDetailModal';
 import { UserProfileModal } from '../profile/UserProfileModal';
+import { VoiceAgentModal } from '../shared/VoiceAgentModal';
 import { useApp } from '../../context/AppContext';
 
 import { DashboardView } from '../dashboard/DashboardView';
@@ -29,7 +30,7 @@ import { AuditLogView } from '../audit/AuditLogView';
 import { useAuth } from '../../context/AuthContext';
 
 export const AppShell: React.FC = () => {
-  const { activeTab, toastMessage } = useApp();
+  const { activeTab, setActiveTab, toastMessage, isVoiceAgentOpen, setIsVoiceAgentOpen } = useApp();
   const { isAdmin } = useAuth();
 
   return (
@@ -76,6 +77,7 @@ export const AppShell: React.FC = () => {
       <CreateMeetingModal />
       
       <UserProfileModal />
+      <VoiceAgentModal isOpen={isVoiceAgentOpen} onClose={() => setIsVoiceAgentOpen(false)} />
       
       {/* Global Entity Modals */}
       <TaskDetailModal />
@@ -90,9 +92,14 @@ export const AppShell: React.FC = () => {
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 12, scale: 0.95 }}
             transition={{ type: 'spring', stiffness: 400, damping: 30 }}
-            className="fixed bottom-6 right-6 z-50"
+            className={`fixed bottom-6 right-6 z-50 ${toastMessage.linkTab ? 'cursor-pointer' : ''}`}
+            onClick={() => {
+              if (toastMessage.linkTab) {
+                setActiveTab(toastMessage.linkTab);
+              }
+            }}
           >
-            <div className={`px-4 py-3 rounded-xl shadow-2xl border backdrop-blur-md flex items-center gap-3 font-semibold text-xs
+            <div className={`px-4 py-3 rounded-xl shadow-2xl border backdrop-blur-md flex items-center gap-3 font-semibold text-xs transition-transform hover:scale-[1.02]
               ${toastMessage.type === 'success' ? 'bg-surface/95 border-emerald-500/40 text-emerald-400' :
                 toastMessage.type === 'error'   ? 'bg-surface/95 border-rose-500/40 text-rose-400' :
                 toastMessage.type === 'warning' ? 'bg-surface/95 border-amber-500/40 text-amber-400' :

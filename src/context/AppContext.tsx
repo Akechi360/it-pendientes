@@ -71,9 +71,13 @@ interface AppContextType {
   selectedIncident: IncidentItem | null;
   setSelectedIncident: (incident: IncidentItem | null) => void;
 
+  // Voice Agent Modal
+  isVoiceAgentOpen: boolean;
+  setIsVoiceAgentOpen: (open: boolean) => void;
+
   // Toast System
-  toast: (message: string, type?: 'success' | 'info' | 'warning' | 'error') => void;
-  toastMessage: { text: string; type: 'success' | 'info' | 'warning' | 'error' } | null;
+  toast: (message: string, type?: 'success' | 'info' | 'warning' | 'error', linkTab?: ActiveTab) => void;
+  toastMessage: { text: string; type: 'success' | 'info' | 'warning' | 'error'; linkTab?: ActiveTab } | null;
 }
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
@@ -102,6 +106,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const [isCreateIncidentOpen, setIsCreateIncidentOpen] = useState<boolean>(false);
   const [isCreateMeetingOpen, setIsCreateMeetingOpen] = useState<boolean>(false);
   const [isProfileOpen, setIsProfileOpen] = useState<boolean>(false);
+  const [isVoiceAgentOpen, setIsVoiceAgentOpen] = useState<boolean>(false);
 
   // Selected Details
   const [selectedTask, setSelectedTask] = useState<TaskItem | null>(null);
@@ -109,10 +114,10 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const [selectedIncident, setSelectedIncident] = useState<IncidentItem | null>(null);
 
   // Toast
-  const [toastMessage, setToastMessage] = useState<{ text: string; type: 'success' | 'info' | 'warning' | 'error' } | null>(null);
+  const [toastMessage, setToastMessage] = useState<{ text: string; type: 'success' | 'info' | 'warning' | 'error'; linkTab?: ActiveTab } | null>(null);
 
-  const toast = (text: string, type: 'success' | 'info' | 'warning' | 'error' = 'info') => {
-    setToastMessage({ text, type });
+  const toast = (text: string, type: 'success' | 'info' | 'warning' | 'error' = 'info', linkTab?: ActiveTab) => {
+    setToastMessage({ text, type, linkTab });
     setTimeout(() => {
       setToastMessage(null);
     }, 4000);
@@ -226,6 +231,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         setIsCreateMeetingOpen,
         isProfileOpen,
         setIsProfileOpen,
+        isVoiceAgentOpen,
+        setIsVoiceAgentOpen,
         selectedTask,
         setSelectedTask,
         selectedProject,

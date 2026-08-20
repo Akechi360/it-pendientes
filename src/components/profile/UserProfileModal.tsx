@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { X, User, Save, Shield, Mail, Briefcase, Camera, Users, Plus } from 'lucide-react';
+import { X, User, Save, Shield, Mail, Briefcase, Camera, Users, Plus, Bell } from 'lucide-react';
 import { useApp } from '../../context/AppContext';
 import { useAuth } from '../../context/AuthContext';
 import { upsertUserProfile, createDocument } from '../../services/supabaseService';

@@ -10,3 +10,9 @@ coverage/
 
 # Firebase (ya no se usa — reemplazado por Supabase)
 firebase-applet-config.json
+
+# Playwright E2E & Temp
+playwright-report/
+test-results/
+temp.ts
+

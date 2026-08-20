@@ -9,8 +9,8 @@ export default async function handler(req, res) {
     return res.status(400).json({ error: 'Missing required fields' });
   }
 
-  const appId = process.env.VITE_ONESIGNAL_APP_ID;
-  const restApiKey = process.env.VITE_ONESIGNAL_REST_KEY;
+  const appId = process.env.ONESIGNAL_APP_ID || process.env.VITE_ONESIGNAL_APP_ID;
+  const restApiKey = process.env.ONESIGNAL_REST_KEY || process.env.VITE_ONESIGNAL_REST_KEY;
 
   if (!appId || !restApiKey) {
     return res.status(500).json({ error: 'Missing OneSignal credentials' });
@@ -26,7 +26,8 @@ export default async function handler(req, res) {
       },
       body: JSON.stringify({
         app_id: appId,
-        included_segments: ['Total Subscriptions'],
+        include_aliases: { external_id: [targetUserId] },
+        filters: [{ field: 'tag', key: 'uid', relation: '=', value: targetUserId }],
         headings: { en: title, es: title },
         contents: { en: message, es: message },
       })

@@ -9,6 +9,7 @@ import {
   ChevronRight
 } from 'lucide-react';
 import { useApp } from '../../context/AppContext';
+import { useAuth } from '../../context/AuthContext';
 import { TaskDetailModal } from './TaskDetailModal';
 import { EntityPageHeader } from '../shared/EntityPageHeader';
 import { StatusBadge } from '../shared/StatusBadge';
@@ -18,11 +19,13 @@ import { AssigneeAvatar } from '../shared/AssigneeAvatar';
 
 export const TasksView: React.FC = () => {
   const { tasks, setIsCreateTaskOpen, setSelectedTask } = useApp();
+  const { currentUser } = useAuth();
 
   const [viewMode, setViewMode] = useState<'lista' | 'kanban' | 'tabla'>('tabla');
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedPriority, setSelectedPriority] = useState<string>('todas');
   const [selectedCategory, setSelectedCategory] = useState<string>('todas');
+  const [selectedAssignee, setSelectedAssignee] = useState<'todos' | 'mis_tareas' | 'companero'>('todos');
   const [showCompleted, setShowCompleted] = useState<boolean>(false);
 
   // Filter Tasks
@@ -31,8 +34,9 @@ export const TasksView: React.FC = () => {
     const matchesPriority = selectedPriority === 'todas' || task.priority === selectedPriority;
     const matchesCategory = selectedCategory === 'todas' || task.category === selectedCategory;
     const matchesStatus = showCompleted ? true : (task.status !== 'completada' && task.status !== 'cancelada');
+    const matchesAssignee = selectedAssignee === 'todos' || (selectedAssignee === 'mis_tareas' ? task.assigneeId === currentUser?.uid : task.assigneeId !== currentUser?.uid);
 
-    return matchesSearch && matchesPriority && matchesCategory && matchesStatus;
+    return matchesSearch && matchesPriority && matchesCategory && matchesStatus && matchesAssignee;
   });
 
   return (
@@ -84,6 +88,28 @@ export const TasksView: React.FC = () => {
               placeholder="Buscar ID o título..."
               className="w-full sm:w-64 pl-8 pr-3 py-1.5 rounded-lg bg-surface-raised border border-border-subtle text-xs text-content-primary placeholder-content-muted focus:outline-none focus:border-cyan-500/50"
             />
+          </div>
+
+          {/* Assignment Quick Filter Pills */}
+          <div className="flex items-center p-1 rounded-lg bg-surface-raised border border-border-subtle text-xs font-medium">
+            <button
+              onClick={() => setSelectedAssignee('todos')}
+              className={`px-2 py-1 rounded-md transition-colors ${selectedAssignee === 'todos' ? 'bg-surface text-cyan-400 border border-border-subtle shadow-xs' : 'text-content-muted hover:text-content-primary'}`}
+            >
+              Todos
+            </button>
+            <button
+              onClick={() => setSelectedAssignee('mis_tareas')}
+              className={`px-2 py-1 rounded-md transition-colors ${selectedAssignee === 'mis_tareas' ? 'bg-surface text-cyan-400 border border-border-subtle shadow-xs' : 'text-content-muted hover:text-content-primary'}`}
+            >
+              Mis Pendientes
+            </button>
+            <button
+              onClick={() => setSelectedAssignee('companero')}
+              className={`px-2 py-1 rounded-md transition-colors ${selectedAssignee === 'companero' ? 'bg-surface text-cyan-400 border border-border-subtle shadow-xs' : 'text-content-muted hover:text-content-primary'}`}
+            >
+              Compañero
+            </button>
           </div>
         </div>
 

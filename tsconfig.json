@@ -11,16 +11,14 @@
     ],
     "skipLibCheck": true,
     "moduleResolution": "bundler",
-    "isolatedModules": true,
-    "moduleDetection": "force",
-    "allowJs": true,
-    "jsx": "react-jsx",
+    "baseUrl": ".",
     "paths": {
-      "@/*": [
-        "./*"
-      ]
+      "@/*": ["./src/*"]
     },
     "allowImportingTsExtensions": true,
+    "jsx": "react-jsx",
     "noEmit": true
-  }
+  },
+  "include": ["src/**/*", "api/**/*"],
+  "exclude": ["node_modules", "dist", "temp.ts"]
 }

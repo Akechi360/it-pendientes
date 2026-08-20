@@ -24,6 +24,7 @@ export type TaskCategory =
   | 'compras' 
   | 'documentacion' 
   | 'administracion' 
+  | 'proyecto'
   | 'otro';
 
 export interface ChecklistItem {

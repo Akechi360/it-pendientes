@@ -12,7 +12,10 @@ import {
   CheckSquare,
   LifeBuoy,
   FolderKanban,
-  Trash2
+  Trash2,
+  CheckCheck,
+  Mic,
+  Sparkles
 } from 'lucide-react';
 import { useApp } from '../../context/AppContext';
 import { useAuth } from '../../context/AuthContext';
@@ -25,6 +28,7 @@ export const Header: React.FC = () => {
     setIsCreateTaskOpen,
     setIsCreateIncidentOpen,
     setIsCreateProjectOpen,
+    setIsVoiceAgentOpen,
     notifications,
     isDarkTheme,
     toggleTheme,
@@ -108,6 +112,16 @@ export const Header: React.FC = () => {
           </AnimatePresence>
         </div>
 
+        {/* Voice AI Agent Toggle */}
+        <button
+          onClick={() => setIsVoiceAgentOpen(true)}
+          className="relative p-2 rounded-lg border border-cyan-500/30 bg-cyan-500/10 hover:bg-cyan-500/20 text-cyan-400 transition-all flex items-center gap-1.5 text-xs font-semibold"
+          title="Agente IT por Voz (IA)"
+        >
+          <Mic className="w-4 h-4 text-cyan-400" />
+          <span className="hidden lg:inline font-mono">Agente IA</span>
+        </button>
+
         {/* Theme Toggle */}
         <button
           onClick={toggleTheme}
@@ -148,6 +162,20 @@ export const Header: React.FC = () => {
                     <Bell className="w-4 h-4 text-cyan-400" /> Notificaciones
                   </h3>
                   <div className="flex items-center gap-1">
+                    {unreadCount > 0 && (
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          notifications.filter(n => !n.isRead).forEach(n => {
+                            updateDocument('notifications', n.id, { is_read: true });
+                          });
+                        }}
+                        className="p-1 rounded hover:bg-cyan-500/10 text-content-muted hover:text-cyan-400 transition-colors"
+                        title="Marcar todas como leídas"
+                      >
+                        <CheckCheck className="w-4 h-4" />
+                      </button>
+                    )}
                     {notifications.some(n => n.isRead) && (
                       <button
                         onClick={(e) => {
