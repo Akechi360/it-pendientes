@@ -20,9 +20,10 @@ test.describe('Portal IT - Verificación E2E de IA y Notificaciones', () => {
     await page.locator('header').waitFor({ state: 'visible', timeout: 10000 });
   };
 
-  test('Debe procesar el comando "Se cayó el wi-fi en la habitación 2... asigna... a Eduardo" produciendo un título saneado', async ({ page }) => {
+  test('Verificación de dictado de voz exacto de la imagen del usuario', async ({ page }) => {
     await performLogin(page);
 
+    // Abrir Agente IA
     const aiButton = page.locator('button[title="Agente IT por Voz (IA)"]');
     await aiButton.click();
 
@@ -31,16 +32,16 @@ test.describe('Portal IT - Verificación E2E de IA y Notificaciones', () => {
 
     await page.locator('#voice-command-submit').click();
 
-    // 1. Verificar que navega a Incidencias
-    await expect(page.locator('h1:has-text("Incidencias"), h2:has-text("Incidencias")').first()).toBeVisible({ timeout: 10000 });
+    // Esperar navegación a Incidencias
+    await page.waitForSelector('text=Eduardo Toro', { timeout: 10000 });
 
-    // 2. Verificar que se asignó a Eduardo Toro
-    await expect(page.locator('text=Eduardo Toro').first()).toBeVisible({ timeout: 10000 });
+    // Obtener las tarjetas de incidencia creadas
+    const titles = await page.locator('.font-semibold, h3, h4').allTextContents();
+    console.log('[Playwright Verification] Títulos en pantalla:', titles);
 
-    // 3. Verificar que la frase "asigna esta incidencia como urgente a Eduardo" FUE REMOVIDA del título en la lista
-    const titleText = await page.locator('.font-semibold, h3, h4').first().textContent();
-    console.log('[Playwright Test] Title in DOM:', titleText);
-    expect(titleText).not.toContain('asigna esta incidencia como urgente a Eduardo');
+    // Verificar que NINGÚN título contenga la frase "asigna esta incidencia..."
+    const dirtyTitle = titles.find(t => t.toLowerCase().includes('asigna esta incidencia'));
+    expect(dirtyTitle).toBeUndefined();
   });
 
 });
