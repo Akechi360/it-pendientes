@@ -81,14 +81,16 @@ export const VoiceAgentModal: React.FC<VoiceAgentModalProps> = ({ isOpen, onClos
 
   const cleanText = (raw: string): string => {
     let cleaned = raw
+      // Eliminar prefijos de creación ("crea una incidencia sobre", "registra una tarea", etc.)
       .replace(/^(crea|creame|registra|registrame|agrega|agregame|nueva|nuevo)\s+(una|un)?\s*(incidencia|tarea|reunion|reunión|proyecto)?\s*(para|sobre|con)?\s*/i, '')
-      .replace(/\s*y?\s*asígna(sela|la|lo)?\s*(de\s+manera\s+\w+)?\s*a\s+[\w\s]+/gi, '')
-      .replace(/\s*asígna(sela|la|lo)?\s*(de\s+manera\s+\w+)?\s*a\s+[\w\s]+/gi, '')
+      // Eliminar sufijos de asignación u órdenes ("asigna esta incidencia como urgente a Eduardo", "y asignasela a Eduardo", etc.)
+      .replace(/\s*(y\s+)?(asigna|asígna|asignale|asígnale|asignasela|asígnesela|pon|ponle|pónsela|coloca|colocale)\s+.*$/gi, '')
+      .replace(/\s*(de\s+manera\s+urgente|como\s+urgente|urgente)\s*.*$/gi, '')
       .replace(/\s*en\s+base\s+a\s+una\s+prueba.*/gi, '')
       .trim();
     
     if (!cleaned || cleaned.length < 3) {
-      cleaned = 'Prueba de Incidencia IT';
+      cleaned = 'Incidencia de Servicio IT';
     }
     return cleaned.charAt(0).toUpperCase() + cleaned.slice(1);
   };
@@ -118,10 +120,9 @@ export const VoiceAgentModal: React.FC<VoiceAgentModalProps> = ({ isOpen, onClos
         console.warn('[VoiceAgent] Serverless API parse-voice fallback:', e);
       }
 
-      // 2. Intentar llamada directa del cliente si Gemini API Key está disponible en el cliente
+      // 2. Intentar llamada directa del cliente (acceso estático a import.meta.env.VITE_GEMINI_API_KEY para Vite)
       if (!parsedIntent) {
-        const rawApiKey = (import.meta as any).env?.VITE_GEMINI_API_KEY || (import.meta as any).env?.GEMINI_API_KEY || '';
-        const apiKey = typeof rawApiKey === 'string' ? rawApiKey.trim() : '';
+        const apiKey = (import.meta.env.VITE_GEMINI_API_KEY || '').trim();
 
         if (apiKey) {
           try {
@@ -136,9 +137,9 @@ export const VoiceAgentModal: React.FC<VoiceAgentModalProps> = ({ isOpen, onClos
 Miembros del equipo disponibles:
 ${membersText || '- Eduardo Toro\n- Manuel Pérez'}
 
-REGLAS STRICTAS:
-1. "title": Título técnico súper profesional y sintético del problema (máximo 6 palabras). Elimina COMPLETAMENTE las instrucciones de asignación (ej: "asignale esta incidencia a Eduardo", "urgente a Eduardo", "registra una incidencia...").
-   - Ejemplo de voz: "Se cayó el wi-fi en hospitalización en la habitación de dos asignale esta incidencia de manera urgente a Eduardo"
+REGLAS ESTRUCTURALES CRÍTICAS:
+1. "title": Título técnico súper profesional y sintético del problema (máximo 7 palabras). Elimina COMPLETAMENTE las instrucciones de asignación (ej: "asigna esta incidencia como urgente a Eduardo", "urgente a Eduardo", "registra una incidencia...").
+   - Ejemplo de voz: "Se cayó el wi-fi en la habitación 2 de hospitalización asigna esta incidencia como urgente a Eduardo"
    - Título correcto: "Fallo de Cobertura Wi-Fi en Habitación 2 de Hospitalización"
 2. "description": Descripción técnica clara del problema reportado omitiendo las ordenes de asignación o meta-comandos.
 3. "priority": "critica" si mencionan "urgente" o "crítica", si no "alta", "media" o "baja".
@@ -212,7 +213,7 @@ Responde ÚNICAMENTE con esta estructura JSON sin markdown:
         parsedIntent = {
           entityType,
           title: cleanedTitle,
-          description: `Fallo reportado por voz: ${cleanedTitle}`,
+          description: `Problema técnico reportado por voz: ${cleanedTitle}`,
           priority,
           category: lower.includes('wi-fi') || lower.includes('wifi') || lower.includes('red') || lower.includes('internet') ? 'redes' : 'soporte',
           assigneeUid: matchedUser.uid,
@@ -340,7 +341,7 @@ Responde ÚNICAMENTE con esta estructura JSON sin markdown:
         await createDocument('notifications', newNotification);
         await sendOneSignalPush(finalAssigneeUid, newNotification.title, newNotification.message);
 
-        toast(`Tarea ${id} asignada a ${finalAssigneeName}`, 'success', 'tasks');
+        toast(`Tarea ${id} creada por Agente de Voz`, 'success', 'tasks');
         setActiveTab('tasks');
       }
 
