@@ -108,11 +108,21 @@ export const VoiceAgentModal: React.FC<VoiceAgentModalProps> = ({ isOpen, onClos
       // 1. IA vía endpoint serverless /api/parse-voice.
       //    La API key (GEMINI_API_KEY) vive SOLO en el servidor; nunca se expone al cliente.
       try {
-        const resp = await fetch('/api/parse-voice', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ command, membersText })
-        });
+        // Timeout en el cliente: si la IA no responde a tiempo, no colgamos
+        // la UI; caemos al parser local con un aviso claro.
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 15000);
+        let resp: Response;
+        try {
+          resp = await fetch('/api/parse-voice', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ command, membersText }),
+            signal: controller.signal,
+          });
+        } finally {
+          clearTimeout(timeoutId);
+        }
         const resData = await resp.json().catch(() => null);
         if (resp.ok && resData?.success && resData.data) {
           parsedIntent = resData.data;
@@ -121,9 +131,9 @@ export const VoiceAgentModal: React.FC<VoiceAgentModalProps> = ({ isOpen, onClos
           aiErrorDetail = resData?.details || `HTTP ${resp.status}`;
           console.warn('[VoiceAgent] IA no disponible:', aiErrorDetail);
         }
-      } catch (e) {
-        aiErrorDetail = String(e);
-        console.warn('[VoiceAgent] Error de red al llamar /api/parse-voice:', e);
+      } catch (e: any) {
+        aiErrorDetail = e?.name === 'AbortError' ? 'La IA tardó demasiado (timeout 15s)' : String(e);
+        console.warn('[VoiceAgent] Error al llamar /api/parse-voice:', e);
       }
 
       // 2. Motor de Reglas Local (fallback si la IA no está disponible; sin conectividad o sin key).

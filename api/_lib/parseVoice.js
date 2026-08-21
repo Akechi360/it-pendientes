@@ -69,16 +69,45 @@ export async function parseVoiceWithGemini({ command, membersText, apiKey }) {
 
   const body = JSON.stringify({
     contents: [{ parts: [{ text: buildPrompt(command, membersText) }] }],
-    generationConfig: { temperature: 0.1, responseMimeType: 'application/json' },
+    generationConfig: {
+      temperature: 0.1,
+      responseMimeType: 'application/json',
+      maxOutputTokens: 800,
+      // CLAVE de latencia: gemini-flash-latest (2.5 Flash) trae "thinking"
+      // dinámico activado, que dispara la latencia a 30-60s. Esto es una
+      // extracción estructurada simple: desactivamos el thinking para
+      // respuestas de ~2-3s.
+      thinkingConfig: { thinkingBudget: 0 },
+    },
   });
   const headers = { 'Content-Type': 'application/json', 'x-goog-api-key': apiKey };
 
   // Reintento breve solo para errores transitorios (sobrecarga/cuota momentánea).
   const TRANSIENT = new Set([429, 500, 502, 503, 504]);
   const MAX_ATTEMPTS = 2;
+  const FETCH_TIMEOUT_MS = 9000; // corta la llamada si Gemini se cuelga
   let resp;
   for (let attempt = 1; attempt <= MAX_ATTEMPTS; attempt++) {
-    resp = await fetch(url, { method: 'POST', headers, body });
+    // Timeout duro por intento: evita que la función serverless quede
+    // colgada esperando a Gemini indefinidamente.
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), FETCH_TIMEOUT_MS);
+    try {
+      resp = await fetch(url, { method: 'POST', headers, body, signal: controller.signal });
+    } catch (e) {
+      // Abort (timeout) o error de red: reintentar una vez, luego propagar.
+      if (attempt < MAX_ATTEMPTS) {
+        await new Promise((r) => setTimeout(r, 300));
+        continue;
+      }
+      const err = new Error(`Gemini no respondió a tiempo (${FETCH_TIMEOUT_MS}ms): ${String(e?.message || e)}`);
+      err.status = 504;
+      err.code = 'GEMINI_TIMEOUT';
+      throw err;
+    } finally {
+      clearTimeout(timer);
+    }
+
     if (resp.ok) break;
 
     const details = await resp.text();
