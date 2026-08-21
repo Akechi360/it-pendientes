@@ -101,83 +101,32 @@ export const VoiceAgentModal: React.FC<VoiceAgentModalProps> = ({ isOpen, onClos
 
     try {
       let parsedIntent: any = null;
+      let usedAI = false;
+      let aiErrorDetail: string | null = null;
       const membersText = users.map(u => `- ${u.displayName} (UID: ${u.uid})`).join('\n');
 
-      // 1. Intentar Serverless API /api/parse-voice primero
+      // 1. IA vía endpoint serverless /api/parse-voice.
+      //    La API key (GEMINI_API_KEY) vive SOLO en el servidor; nunca se expone al cliente.
       try {
         const resp = await fetch('/api/parse-voice', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ command, membersText })
         });
-        if (resp.ok) {
-          const resData = await resp.json();
-          if (resData.success && resData.data) {
-            parsedIntent = resData.data;
-          }
+        const resData = await resp.json().catch(() => null);
+        if (resp.ok && resData?.success && resData.data) {
+          parsedIntent = resData.data;
+          usedAI = true;
+        } else {
+          aiErrorDetail = resData?.details || `HTTP ${resp.status}`;
+          console.warn('[VoiceAgent] IA no disponible:', aiErrorDetail);
         }
       } catch (e) {
-        console.warn('[VoiceAgent] Serverless API parse-voice fallback:', e);
+        aiErrorDetail = String(e);
+        console.warn('[VoiceAgent] Error de red al llamar /api/parse-voice:', e);
       }
 
-      // 2. Intentar llamada directa del cliente (acceso estático a import.meta.env.VITE_GEMINI_API_KEY para Vite)
-      if (!parsedIntent) {
-        const apiKey = (import.meta.env.VITE_GEMINI_API_KEY || '').trim();
-
-        if (apiKey) {
-          try {
-            const aiResponse = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`, {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({
-                contents: [{
-                  parts: [{
-                    text: `Eres un asistente de IA para un Portal IT de una clínica. Analiza este dictado por voz en español: "${command}".
-
-Miembros del equipo disponibles:
-${membersText || '- Eduardo Toro\n- Manuel Pérez'}
-
-REGLAS ESTRUCTURALES CRÍTICAS:
-1. "title": Título técnico súper profesional y sintético del problema (máximo 7 palabras). Elimina COMPLETAMENTE las instrucciones de asignación (ej: "asigna esta incidencia como urgente a Eduardo", "urgente a Eduardo", "registra una incidencia...").
-   - Ejemplo de voz: "Se cayó el wi-fi en la habitación 2 de hospitalización asigna esta incidencia como urgente a Eduardo"
-   - Título correcto: "Fallo de Cobertura Wi-Fi en Habitación 2 de Hospitalización"
-2. "description": Descripción técnica clara del problema reportado omitiendo las ordenes de asignación o meta-comandos.
-3. "priority": "critica" si mencionan "urgente" o "crítica", si no "alta", "media" o "baja".
-4. "assigneeUid" y "assigneeName": El usuario asignado si lo mencionan.
-
-Responde ÚNICAMENTE con esta estructura JSON sin markdown:
-{
-  "entityType": "incident",
-  "title": "string",
-  "description": "string",
-  "priority": "critica",
-  "category": "redes",
-  "assigneeUid": "string o null",
-  "assigneeName": "string o null"
-}`
-                  }]
-                }],
-                generationConfig: {
-                  temperature: 0.1,
-                  responseMimeType: "application/json"
-                }
-              })
-            });
-
-            if (aiResponse.ok) {
-              const aiData = await aiResponse.json();
-              const textContent = aiData.candidates?.[0]?.content?.parts?.[0]?.text;
-              if (textContent) {
-                parsedIntent = JSON.parse(textContent);
-              }
-            }
-          } catch (e) {
-            console.warn('[VoiceAgent] Direct Gemini Fetch fallback:', e);
-          }
-        }
-      }
-
-      // 3. Motor de Reglas Local (Fallback ultra-resistente si no hay conectividad ni API key)
+      // 2. Motor de Reglas Local (fallback si la IA no está disponible; sin conectividad o sin key).
       if (!parsedIntent) {
         const lower = command.toLowerCase();
 
@@ -219,6 +168,11 @@ Responde ÚNICAMENTE con esta estructura JSON sin markdown:
           assigneeUid: matchedUser.uid,
           assigneeName: matchedUser.displayName
         };
+      }
+
+      // Feedback honesto: si la IA no respondió, avisamos que se usó el parser local.
+      if (!usedAI) {
+        toast(`IA no disponible (${aiErrorDetail || 'sin conexión'}). Se usó el parser local.`, 'warning');
       }
 
       // Resolver asignación final
