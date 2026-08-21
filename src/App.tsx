@@ -66,25 +66,58 @@ const LoadingScreen: React.FC = () => (
 const AppGate: React.FC = () => {
   const { currentUser, loading } = useAuth();
   const isOneSignalInitPending = React.useRef(false);
+  const isListenerRegistered = React.useRef(false);
+  // El listener de suscripción se registra una sola vez; con este ref
+  // siempre ve el uid más reciente (evita el bug de stale closure).
+  const currentUserRef = React.useRef(currentUser);
+
+  React.useEffect(() => {
+    currentUserRef.current = currentUser;
+  }, [currentUser]);
 
   React.useEffect(() => {
     if (loading) return;
+
     import('react-onesignal').then(({ default: OneSignal }) => {
+      // Re-asocia la suscripción ACTUAL al usuario logueado. Idempotente:
+      // es seguro llamarlo varias veces.
+      const associateIdentity = async () => {
+        const user = currentUserRef.current;
+        if (!user) return;
+        try {
+          await OneSignal.login(user.uid);
+          OneSignal.User.addTag('uid', user.uid);
+        } catch (err) {
+          console.error('[OneSignal] Error asociando identidad:', err);
+        }
+      };
+
+      // CLAVE del fix (split identity): cuando el usuario acepta el permiso
+      // se crea una suscripción nueva; aquí la volvemos a ligar al uid para
+      // que NO quede anónima y el targeting dirigido pueda alcanzarla.
+      const onSubscriptionChange = (change: { current?: { id?: string; optedIn?: boolean } }) => {
+        if (currentUserRef.current && change?.current?.optedIn && change?.current?.id) {
+          associateIdentity();
+        }
+      };
+
       const handleAuth = async () => {
         try {
           if (currentUser) {
-            await OneSignal.login(currentUser.uid);
-            OneSignal.User.addTag('uid', currentUser.uid);
-            
-            // Log diagnostic info
+            await associateIdentity();
+
+            // Si aún no está suscrito, pedimos permiso. Al aceptar,
+            // onSubscriptionChange re-asocia la suscripción recién creada.
+            if (!OneSignal.User.PushSubscription.optedIn) {
+              OneSignal.Slidedown.promptPush();
+            }
+
+            // Log diagnóstico
             setTimeout(() => {
               console.log('[OneSignal Debug] User ID logged in:', currentUser.uid);
               console.log('[OneSignal Debug] Opted In:', OneSignal.User.PushSubscription.optedIn);
               console.log('[OneSignal Debug] Subscription ID:', OneSignal.User.PushSubscription.id);
-              console.log('[OneSignal Debug] External ID in OneSignal:', OneSignal.User.externalId);
             }, 3000);
-
-            OneSignal.Slidedown.promptPush();
           } else {
             await OneSignal.logout();
           }
@@ -93,20 +126,31 @@ const AppGate: React.FC = () => {
         }
       };
 
-      if (!OneSignal.initialized && !isOneSignalInitPending.current) {
-        isOneSignalInitPending.current = true;
-        OneSignal.init({
-          appId: 'd1338b94-ffbe-4c72-8a96-b9ca075f7147',
-          allowLocalhostAsSecureOrigin: true,
-        }).then(() => {
-          handleAuth();
-        }).catch(err => {
-          console.error(err);
-          isOneSignalInitPending.current = false;
-        });
-      } else if (OneSignal.initialized) {
-        handleAuth();
-      }
+      const boot = async () => {
+        if (!OneSignal.initialized && !isOneSignalInitPending.current) {
+          isOneSignalInitPending.current = true;
+          try {
+            await OneSignal.init({
+              appId: 'd1338b94-ffbe-4c72-8a96-b9ca075f7147',
+              allowLocalhostAsSecureOrigin: true,
+            });
+          } catch (err) {
+            console.error(err);
+            isOneSignalInitPending.current = false;
+            return;
+          }
+        }
+
+        // Registrar el listener de suscripción UNA sola vez, tras el init.
+        if (!isListenerRegistered.current) {
+          isListenerRegistered.current = true;
+          OneSignal.User.PushSubscription.addEventListener('change', onSubscriptionChange);
+        }
+
+        await handleAuth();
+      };
+
+      boot();
     });
   }, [currentUser, loading]);
 
