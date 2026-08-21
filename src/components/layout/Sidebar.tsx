@@ -81,9 +81,7 @@ export const Sidebar: React.FC = () => {
     <>
       {/* Header / Brand */}
       <div className="flex items-center gap-3 px-4 py-4 border-b border-border-subtle shrink-0">
-        <div className="relative flex items-center justify-center w-8 h-8 rounded-lg bg-surface-raised border border-cyan-500/20 text-cyan-400 shrink-0 shadow-[0_0_16px_-4px] shadow-cyan-500/40">
-          <Server className="w-4 h-4" />
-        </div>
+        <img src="/logo-it.png" alt="Portal IT" className="w-8 h-8 rounded-lg shrink-0 shadow-[0_0_16px_-4px] shadow-cyan-500/40" />
         {!collapsed && (
           <div className="overflow-hidden">
             <h1 className="font-semibold text-sm text-content-primary flex items-center gap-1.5 truncate">
@@ -195,7 +193,7 @@ export const Sidebar: React.FC = () => {
       {/* Mobile Toggle Header (visible only on small screens) */}
       <div className="md:hidden flex items-center justify-between p-4 border-b border-border-subtle bg-surface">
         <div className="flex items-center gap-2">
-          <Server className="w-5 h-5 text-cyan-400" />
+          <img src="/logo-it.png" alt="Portal IT" className="w-5 h-5 rounded-md" />
           <h1 className="font-semibold text-sm text-content-primary">PORTAL IT</h1>
         </div>
         <button onClick={() => setMobileOpen(true)} className="p-1 text-content-secondary hover:text-content-primary">

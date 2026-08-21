@@ -111,7 +111,7 @@ export const VoiceAgentModal: React.FC<VoiceAgentModalProps> = ({ isOpen, onClos
         // Timeout en el cliente: si la IA no responde a tiempo, no colgamos
         // la UI; caemos al parser local con un aviso claro.
         const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), 15000);
+        const timeoutId = setTimeout(() => controller.abort(), 18000);
         let resp: Response;
         try {
           resp = await fetch('/api/parse-voice', {
@@ -132,7 +132,7 @@ export const VoiceAgentModal: React.FC<VoiceAgentModalProps> = ({ isOpen, onClos
           console.warn('[VoiceAgent] IA no disponible:', aiErrorDetail);
         }
       } catch (e: any) {
-        aiErrorDetail = e?.name === 'AbortError' ? 'La IA tardó demasiado (timeout 15s)' : String(e);
+        aiErrorDetail = e?.name === 'AbortError' ? 'La IA tardó demasiado (timeout 18s)' : String(e);
         console.warn('[VoiceAgent] Error al llamar /api/parse-voice:', e);
       }
 

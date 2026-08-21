@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { Server, Eye, EyeOff, Lock, Mail, AlertCircle, ShieldCheck, ArrowRight, Activity, Cpu } from 'lucide-react';
+import { Eye, EyeOff, Lock, Mail, AlertCircle, ShieldCheck, ArrowRight, Activity, Cpu } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 
 const containerVariants = {
@@ -76,9 +76,7 @@ export const LoginPage: React.FC = () => {
           className="relative z-10"
         >
           <div className="inline-flex items-center gap-3 text-content-primary">
-            <div className="w-10 h-10 rounded-xl bg-cyan-500/10 border border-cyan-500/20 flex items-center justify-center shadow-[0_0_20px_-4px] shadow-cyan-500/40">
-              <Server className="w-5 h-5 text-cyan-400" />
-            </div>
+            <img src="/logo-it.png" alt="Portal IT" className="w-10 h-10 rounded-xl shadow-[0_0_20px_-4px] shadow-cyan-500/40" />
             <span className="font-bold tracking-tight text-xl text-white">Portal IT</span>
           </div>
         </motion.div>
@@ -170,9 +168,7 @@ export const LoginPage: React.FC = () => {
 
           {/* Mobile Header (Hidden on Desktop) */}
           <motion.div variants={itemVariants} className="lg:hidden text-center mb-10">
-            <div className="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-cyan-500/10 border border-cyan-500/20 mb-5">
-              <Server size={26} className="text-cyan-400" />
-            </div>
+            <img src="/logo-it.png" alt="Portal IT" className="inline-block w-14 h-14 rounded-2xl mb-5" />
             <h1 className="text-2xl font-bold text-content-primary tracking-tight">Portal IT</h1>
             <p className="text-content-secondary text-sm mt-1.5">Centro de Operaciones</p>
           </motion.div>

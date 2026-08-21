@@ -4,6 +4,7 @@ import { AppProvider } from './context/AppContext';
 import { LoginPage } from './components/auth/LoginPage';
 import { AppShell } from './components/layout/AppShell';
 import { AlertCircle, RefreshCw } from 'lucide-react';
+import { TwinOrbit } from './components/loading-ui/twin-orbit';
 
 // ─── Error Boundary Component para evitar pantallas negras ───
 interface ErrorBoundaryProps {
@@ -58,7 +59,7 @@ class ErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoundarySta
 // ─── Pantalla de carga global ───
 const LoadingScreen: React.FC = () => (
   <div className="min-h-screen bg-canvas flex flex-col items-center justify-center gap-4">
-    <div className="w-8 h-8 border-2 border-border-subtle border-t-cyan-500 rounded-full animate-spin" />
+    <TwinOrbit className="size-8 text-cyan-400" />
     <p className="text-content-muted text-sm font-mono">Autenticando...</p>
   </div>
 );

@@ -5,11 +5,11 @@
 // La API key vive SOLO en el servidor: nunca se expone al cliente.
 // ─────────────────────────────────────────────────────────────
 
-// Alias que Google mantiene apuntando al flash estable actual.
-// Usamos el alias (no una versión fija) porque Google retira versiones
-// concretas periódicamente: gemini-1.5-flash, 2.0-flash y 2.5-flash ya
-// están retiradas. El alias evita tener que reparar esto cada vez.
-export const GEMINI_MODEL = 'gemini-flash-latest';
+// Cadena de modelos (alias "latest" para no romperse cuando Google retira
+// versiones concretas). Si el primero está saturado (503) o lento, se cae al
+// siguiente ANTES de rendirse al parser local. flash-lite es más disponible y
+// rápido; ambos son 2.5 y aceptan thinkingConfig.
+export const GEMINI_MODELS = ['gemini-flash-latest', 'gemini-flash-lite-latest'];
 
 const buildPrompt = (command, membersText) => `Eres un asistente de IA para un Portal IT de una clínica. Analiza este dictado por voz en español: "${command}".
 
@@ -65,64 +65,57 @@ export async function parseVoiceWithGemini({ command, membersText, apiKey }) {
 
   // Auth por cabecera (x-goog-api-key), no en la URL: evita que la clave
   // acabe en logs/proxies. La clave nunca sale del servidor.
-  const url = `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent`;
-
   const body = JSON.stringify({
     contents: [{ parts: [{ text: buildPrompt(command, membersText) }] }],
     generationConfig: {
       temperature: 0.1,
       responseMimeType: 'application/json',
       maxOutputTokens: 800,
-      // CLAVE de latencia: gemini-flash-latest (2.5 Flash) trae "thinking"
-      // dinámico activado, que dispara la latencia a 30-60s. Esto es una
-      // extracción estructurada simple: desactivamos el thinking para
-      // respuestas de ~2-3s.
+      // CLAVE de latencia: gemini-flash (2.5) trae "thinking" dinámico
+      // activado, que dispara la latencia a 30-60s. Esto es una extracción
+      // estructurada simple: desactivamos el thinking para ~2-3s.
       thinkingConfig: { thinkingBudget: 0 },
     },
   });
   const headers = { 'Content-Type': 'application/json', 'x-goog-api-key': apiKey };
 
-  // Reintento breve solo para errores transitorios (sobrecarga/cuota momentánea).
   const TRANSIENT = new Set([429, 500, 502, 503, 504]);
-  const MAX_ATTEMPTS = 2;
-  const FETCH_TIMEOUT_MS = 9000; // corta la llamada si Gemini se cuelga
-  let resp;
-  for (let attempt = 1; attempt <= MAX_ATTEMPTS; attempt++) {
-    // Timeout duro por intento: evita que la función serverless quede
-    // colgada esperando a Gemini indefinidamente.
+  const FETCH_TIMEOUT_MS = 8000; // corta la llamada si el modelo se cuelga
+
+  // Recorre la cadena de modelos: si uno está saturado (503), con cuota (429)
+  // o lento (timeout), pasa al siguiente antes de rendirse. Un error NO
+  // transitorio (key inválida, 400, modelo inexistente) aborta de inmediato.
+  let lastErr;
+  for (const model of GEMINI_MODELS) {
+    const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`;
     const controller = new AbortController();
     const timer = setTimeout(() => controller.abort(), FETCH_TIMEOUT_MS);
+    let resp;
     try {
       resp = await fetch(url, { method: 'POST', headers, body, signal: controller.signal });
     } catch (e) {
-      // Abort (timeout) o error de red: reintentar una vez, luego propagar.
-      if (attempt < MAX_ATTEMPTS) {
-        await new Promise((r) => setTimeout(r, 300));
-        continue;
-      }
-      const err = new Error(`Gemini no respondió a tiempo (${FETCH_TIMEOUT_MS}ms): ${String(e?.message || e)}`);
-      err.status = 504;
-      err.code = 'GEMINI_TIMEOUT';
-      throw err;
+      lastErr = new Error(`Gemini no respondió a tiempo con ${model} (${FETCH_TIMEOUT_MS}ms): ${String(e?.message || e)}`);
+      lastErr.status = 504;
+      lastErr.code = 'GEMINI_TIMEOUT';
+      continue; // probar el siguiente modelo
     } finally {
       clearTimeout(timer);
     }
 
-    if (resp.ok) break;
+    if (resp.ok) {
+      const data = await resp.json();
+      const textContent = data?.candidates?.[0]?.content?.parts?.[0]?.text;
+      return extractJson(textContent);
+    }
 
     const details = await resp.text();
-    if (TRANSIENT.has(resp.status) && attempt < MAX_ATTEMPTS) {
-      await new Promise((r) => setTimeout(r, 500));
-      continue;
-    }
-    // Propaga el error REAL de Gemini (key inválida, modelo no encontrado, cuota, etc.)
-    const err = new Error(`Gemini API ${resp.status}: ${details.slice(0, 500)}`);
-    err.status = resp.status;
-    err.code = 'GEMINI_ERROR';
-    throw err;
+    lastErr = new Error(`Gemini API ${resp.status} (${model}): ${details.slice(0, 300)}`);
+    lastErr.status = resp.status;
+    lastErr.code = 'GEMINI_ERROR';
+    if (TRANSIENT.has(resp.status)) continue; // saturación/cuota → siguiente modelo
+    throw lastErr; // error no transitorio → abortar
   }
 
-  const data = await resp.json();
-  const textContent = data?.candidates?.[0]?.content?.parts?.[0]?.text;
-  return extractJson(textContent);
+  // Todos los modelos fallaron (saturación/timeout): propaga el último error.
+  throw lastErr;
 }
