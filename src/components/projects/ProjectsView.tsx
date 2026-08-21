@@ -48,10 +48,10 @@ export const ProjectsView: React.FC = () => {
               <tr>
                 <th className="px-4 py-3 font-semibold">Estado</th>
                 <th className="px-4 py-3 font-semibold">ID / Proyecto</th>
-                <th className="px-4 py-3 font-semibold">Líder</th>
-                <th className="px-4 py-3 font-semibold w-48">Progreso</th>
-                <th className="px-4 py-3 font-semibold">Fecha Objetivo</th>
-                <th className="px-4 py-3 font-semibold">Riesgos / Bloqueos</th>
+                <th className="px-4 py-3 font-semibold hidden md:table-cell">Líder</th>
+                <th className="px-4 py-3 font-semibold w-48 hidden sm:table-cell">Progreso</th>
+                <th className="px-4 py-3 font-semibold hidden lg:table-cell">Fecha Objetivo</th>
+                <th className="px-4 py-3 font-semibold hidden lg:table-cell">Riesgos / Bloqueos</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-border-subtle text-content-secondary">
@@ -71,16 +71,16 @@ export const ProjectsView: React.FC = () => {
                       <td className="px-4 py-3">
                         <StatusBadge status={project.status} />
                       </td>
-                      <td className="px-4 py-3 max-w-xs xl:max-w-md truncate">
+                      <td className="px-4 py-3 max-w-[42vw] sm:max-w-xs xl:max-w-md truncate">
                         <div className="flex items-center gap-2">
                           <span className="font-mono font-bold text-emerald-400">{project.id}</span>
                           <span className="text-content-primary font-medium group-hover:text-emerald-300 transition-colors">{project.name}</span>
                         </div>
                       </td>
-                      <td className="px-4 py-3">
+                      <td className="px-4 py-3 hidden md:table-cell">
                         <AssigneeAvatar name={project.leadName} />
                       </td>
-                      <td className="px-4 py-3">
+                      <td className="px-4 py-3 hidden sm:table-cell">
                         <div className="flex items-center gap-3">
                           <div className="flex-1 h-1.5 rounded-full bg-surface-raised overflow-hidden">
                             <div 
@@ -91,12 +91,12 @@ export const ProjectsView: React.FC = () => {
                           <span className="font-mono text-[10px] w-8 text-right">{project.progress}%</span>
                         </div>
                       </td>
-                      <td className="px-4 py-3">
+                      <td className="px-4 py-3 hidden lg:table-cell">
                         <span className={`font-mono text-[11px] ${targetDatePassed ? 'text-rose-400 font-bold' : 'text-content-secondary'}`}>
                           {project.targetDate || 'Sin fecha'}
                         </span>
                       </td>
-                      <td className="px-4 py-3">
+                      <td className="px-4 py-3 hidden lg:table-cell">
                         {project.risks ? (
                           <div className="flex items-center gap-1.5 text-rose-400 max-w-[150px] truncate" title={project.risks}>
                             <AlertTriangle className="w-3.5 h-3.5 shrink-0" />

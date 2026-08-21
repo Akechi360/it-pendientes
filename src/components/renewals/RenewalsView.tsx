@@ -63,10 +63,10 @@ export const RenewalsView: React.FC = () => {
               <tr>
                 <th className="px-4 py-3 font-semibold">Estado</th>
                 <th className="px-4 py-3 font-semibold">Ítem</th>
-                <th className="px-4 py-3 font-semibold">Proveedor</th>
-                <th className="px-4 py-3 font-semibold">Costo Aprox.</th>
-                <th className="px-4 py-3 font-semibold">Frecuencia</th>
-                <th className="px-4 py-3 font-semibold">Responsable</th>
+                <th className="px-4 py-3 font-semibold hidden md:table-cell">Proveedor</th>
+                <th className="px-4 py-3 font-semibold hidden sm:table-cell">Costo Aprox.</th>
+                <th className="px-4 py-3 font-semibold hidden lg:table-cell">Frecuencia</th>
+                <th className="px-4 py-3 font-semibold hidden lg:table-cell">Responsable</th>
                 <th className="px-4 py-3 font-semibold">Vencimiento</th>
                 {currentUser?.role === 'admin' && <th className="px-4 py-3 font-semibold"></th>}
               </tr>
@@ -83,7 +83,7 @@ export const RenewalsView: React.FC = () => {
                     <td className="px-4 py-3">
                       <StatusBadge status={renewal.status} />
                     </td>
-                    <td className="px-4 py-3 max-w-xs xl:max-w-md truncate">
+                    <td className="px-4 py-3 max-w-[42vw] sm:max-w-xs xl:max-w-md truncate">
                       <div className="flex items-center gap-2">
                         <span className="font-mono font-bold text-violet-400">{renewal.id}</span>
                         <span className="text-content-primary font-medium group-hover:text-violet-300 transition-colors">{renewal.title}</span>
@@ -92,14 +92,14 @@ export const RenewalsView: React.FC = () => {
                         {renewal.type.replace('_', ' ')}
                       </div>
                     </td>
-                    <td className="px-4 py-3 font-medium text-content-primary">{renewal.vendor}</td>
-                    <td className="px-4 py-3 font-mono text-emerald-400 font-medium">
+                    <td className="px-4 py-3 font-medium text-content-primary hidden md:table-cell">{renewal.vendor}</td>
+                    <td className="px-4 py-3 font-mono text-emerald-400 font-medium hidden sm:table-cell">
                       <div className="flex items-center gap-1">
                         <DollarSign className="w-3 h-3 text-content-muted" /> {renewal.cost}
                       </div>
                     </td>
-                    <td className="px-4 py-3 capitalize text-[11px]">{renewal.frequency}</td>
-                    <td className="px-4 py-3">
+                    <td className="px-4 py-3 capitalize text-[11px] hidden lg:table-cell">{renewal.frequency}</td>
+                    <td className="px-4 py-3 hidden lg:table-cell">
                       <AssigneeAvatar name={renewal.responsibleName} />
                     </td>
                     <td className="px-4 py-3">

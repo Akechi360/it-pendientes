@@ -156,9 +156,9 @@ export const TasksView: React.FC = () => {
                   <th className="px-4 py-3 font-semibold">Prioridad</th>
                   <th className="px-4 py-3 font-semibold">ID / Título</th>
                   <th className="px-4 py-3 font-semibold">Estado</th>
-                  <th className="px-4 py-3 font-semibold">Responsable</th>
-                  <th className="px-4 py-3 font-semibold">Categoría</th>
-                  <th className="px-4 py-3 font-semibold">Vencimiento</th>
+                  <th className="px-4 py-3 font-semibold hidden md:table-cell">Responsable</th>
+                  <th className="px-4 py-3 font-semibold hidden lg:table-cell">Categoría</th>
+                  <th className="px-4 py-3 font-semibold hidden sm:table-cell">Vencimiento</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-border-subtle text-content-secondary">
@@ -174,7 +174,7 @@ export const TasksView: React.FC = () => {
                       <td className="px-4 py-3">
                         <PriorityIndicator priority={task.priority} />
                       </td>
-                      <td className="px-4 py-3 max-w-xs xl:max-w-md truncate">
+                      <td className="px-4 py-3 max-w-[42vw] sm:max-w-xs xl:max-w-md truncate">
                         <div className="flex items-center gap-2">
                           <span className="font-mono font-bold text-cyan-400">{task.id}</span>
                           <span className="text-content-primary font-medium group-hover:text-cyan-300 transition-colors">{task.title}</span>
@@ -184,11 +184,11 @@ export const TasksView: React.FC = () => {
                       <td className="px-4 py-3">
                         <StatusBadge status={task.status} />
                       </td>
-                      <td className="px-4 py-3">
+                      <td className="px-4 py-3 hidden md:table-cell">
                         <AssigneeAvatar name={task.assigneeName} />
                       </td>
-                      <td className="px-4 py-3 capitalize text-[11px]">{task.category}</td>
-                      <td className="px-4 py-3">
+                      <td className="px-4 py-3 capitalize text-[11px] hidden lg:table-cell">{task.category}</td>
+                      <td className="px-4 py-3 hidden sm:table-cell">
                         <DueDateIndicator date={task.dueDate} />
                       </td>
                     </tr>

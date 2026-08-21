@@ -45,7 +45,7 @@ export const Header: React.FC = () => {
   return (
     <header className="sticky top-0 z-20 flex items-center justify-between px-3 md:px-6 py-3 border-b border-border-subtle bg-canvas/80 backdrop-blur-md gap-3">
       {/* Search Bar / Command Palette Trigger */}
-      <div className="flex items-center gap-4 flex-1 max-w-xl">
+      <div className="flex items-center gap-4 flex-1 min-w-0 max-w-xl">
         <button
           onClick={() => setIsCommandPaletteOpen(true)}
           className="w-full flex items-center justify-between px-3 py-2 rounded-lg border border-border-subtle bg-surface hover:bg-surface-hover text-sm font-normal text-content-secondary transition-all"
@@ -72,8 +72,8 @@ export const Header: React.FC = () => {
             className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-semibold bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-white shadow-md shadow-cyan-500/20 transition-colors"
           >
             <Plus className="w-4 h-4" />
-            <span>Crear</span>
-            <ChevronDown className={`w-3 h-3 ml-1 transition-transform ${showCreateMenu ? 'rotate-180' : ''}`} />
+            <span className="hidden sm:inline">Crear</span>
+            <ChevronDown className={`w-3 h-3 sm:ml-1 transition-transform ${showCreateMenu ? 'rotate-180' : ''}`} />
           </motion.button>
 
           <AnimatePresence>
@@ -282,7 +282,7 @@ export const Header: React.FC = () => {
         {/* Profile Button */}
         <button
           onClick={() => setIsProfileOpen(true)}
-          className="flex items-center gap-2 ml-2 pl-3 py-1 border-l border-border-subtle hover:opacity-80 transition-opacity"
+          className="flex items-center gap-2 ml-1 sm:ml-2 pl-2 sm:pl-3 py-1 border-l border-border-subtle hover:opacity-80 transition-opacity"
           title="Mi Perfil"
         >
           <div className="flex-col items-end hidden sm:flex">

@@ -222,12 +222,12 @@ export const AssetsView: React.FC = () => {
             <thead className="bg-surface-raised text-content-muted font-mono text-[10px] uppercase border-b border-border-subtle">
               <tr>
                 <th className="px-4 py-3 font-semibold">Estado</th>
-                <th className="px-4 py-3 font-semibold">Tag Interno</th>
+                <th className="px-4 py-3 font-semibold hidden lg:table-cell">Tag Interno</th>
                 <th className="px-4 py-3 font-semibold">Nombre del Activo</th>
-                <th className="px-4 py-3 font-semibold">Tipo</th>
-                <th className="px-4 py-3 font-semibold">Dirección IP</th>
-                <th className="px-4 py-3 font-semibold">Número de Serie</th>
-                <th className="px-4 py-3 font-semibold">Ubicación</th>
+                <th className="px-4 py-3 font-semibold hidden sm:table-cell">Tipo</th>
+                <th className="px-4 py-3 font-semibold hidden lg:table-cell">Dirección IP</th>
+                <th className="px-4 py-3 font-semibold hidden xl:table-cell">Número de Serie</th>
+                <th className="px-4 py-3 font-semibold hidden md:table-cell">Ubicación</th>
                 {currentUser?.role === 'admin' && <th className="px-4 py-3 font-semibold text-right">Acciones</th>}
               </tr>
             </thead>
@@ -240,12 +240,12 @@ export const AssetsView: React.FC = () => {
                     <td className="px-4 py-3">
                       <StatusBadge status={asset.status} />
                     </td>
-                    <td className="px-4 py-3 font-mono font-bold text-cyan-400">{asset.tag}</td>
+                    <td className="px-4 py-3 font-mono font-bold text-cyan-400 hidden lg:table-cell">{asset.tag}</td>
                     <td className="px-4 py-3 font-medium text-content-primary">{asset.name}</td>
-                    <td className="px-4 py-3 capitalize text-[11px]">{asset.type.replace('_', ' ')}</td>
-                    <td className="px-4 py-3 font-mono text-cyan-400 text-[11px]">{asset.ipAddress && asset.ipAddress !== 'N/A' ? asset.ipAddress : <span className="text-content-muted">N/A</span>}</td>
-                    <td className="px-4 py-3 font-mono text-content-muted text-[11px]">{asset.serialNumber}</td>
-                    <td className="px-4 py-3 text-[11px]">{asset.location}</td>
+                    <td className="px-4 py-3 capitalize text-[11px] hidden sm:table-cell">{asset.type.replace('_', ' ')}</td>
+                    <td className="px-4 py-3 font-mono text-cyan-400 text-[11px] hidden lg:table-cell">{asset.ipAddress && asset.ipAddress !== 'N/A' ? asset.ipAddress : <span className="text-content-muted">N/A</span>}</td>
+                    <td className="px-4 py-3 font-mono text-content-muted text-[11px] hidden xl:table-cell">{asset.serialNumber}</td>
+                    <td className="px-4 py-3 text-[11px] hidden md:table-cell">{asset.location}</td>
                     {currentUser?.role === 'admin' && (
                       <td className="px-4 py-3 text-right">
                         <button

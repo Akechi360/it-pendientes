@@ -78,10 +78,10 @@ export const IncidentsView: React.FC = () => {
                 <th className="px-4 py-3 font-semibold">Prioridad</th>
                 <th className="px-4 py-3 font-semibold">ID / Incidencia</th>
                 <th className="px-4 py-3 font-semibold">Estado</th>
-                <th className="px-4 py-3 font-semibold">Área / Categoría</th>
-                <th className="px-4 py-3 font-semibold">Responsable</th>
-                <th className="px-4 py-3 font-semibold">Abierta Desde</th>
-                <th className="px-4 py-3 font-semibold">Vence SLA</th>
+                <th className="px-4 py-3 font-semibold hidden lg:table-cell">Área / Categoría</th>
+                <th className="px-4 py-3 font-semibold hidden md:table-cell">Responsable</th>
+                <th className="px-4 py-3 font-semibold hidden lg:table-cell">Abierta Desde</th>
+                <th className="px-4 py-3 font-semibold hidden sm:table-cell">Vence SLA</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-border-subtle text-content-secondary">
@@ -97,7 +97,7 @@ export const IncidentsView: React.FC = () => {
                     <td className="px-4 py-3">
                       <PriorityIndicator priority={incident.priority} />
                     </td>
-                    <td className="px-4 py-3 max-w-xs xl:max-w-md truncate">
+                    <td className="px-4 py-3 max-w-[42vw] sm:max-w-xs xl:max-w-md truncate">
                       <div className="flex items-center gap-2">
                         <span className="font-mono font-bold text-amber-400">{incident.id}</span>
                         <span className="text-content-primary font-medium group-hover:text-amber-300 transition-colors">{incident.title}</span>
@@ -109,14 +109,14 @@ export const IncidentsView: React.FC = () => {
                     <td className="px-4 py-3">
                       <StatusBadge status={incident.status} />
                     </td>
-                    <td className="px-4 py-3 capitalize text-[11px]">{incident.category}</td>
-                    <td className="px-4 py-3">
+                    <td className="px-4 py-3 capitalize text-[11px] hidden lg:table-cell">{incident.category}</td>
+                    <td className="px-4 py-3 hidden md:table-cell">
                       <AssigneeAvatar name={incident.assigneeName} />
                     </td>
-                    <td className="px-4 py-3 font-mono text-[11px]">
+                    <td className="px-4 py-3 font-mono text-[11px] hidden lg:table-cell">
                       {formatDate(incident.createdAt)}
                     </td>
-                    <td className="px-4 py-3">
+                    <td className="px-4 py-3 hidden sm:table-cell">
                       <DueDateIndicator date={incident.slaDueDate} type="sla" />
                     </td>
                   </tr>
