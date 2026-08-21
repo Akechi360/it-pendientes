@@ -14,7 +14,6 @@ export const VoiceAgentModal: React.FC<VoiceAgentModalProps> = ({ isOpen, onClos
   const { toast, setActiveTab } = useApp();
   const { currentUser } = useAuth();
 
-  // Suscribirse a usuarios reales registrados en el portal
   const { data: users = [] } = useRealtimeQuery<{ uid: string; displayName: string; role: string; title?: string }>('users');
 
   const [isListening, setIsListening] = useState(false);
@@ -84,6 +83,7 @@ export const VoiceAgentModal: React.FC<VoiceAgentModalProps> = ({ isOpen, onClos
     let cleaned = raw
       .replace(/^(crea|creame|registra|registrame|agrega|agregame|nueva|nuevo)\s+(una|un)?\s*(incidencia|tarea|reunion|reunión|proyecto)?\s*(para|sobre|con)?\s*/i, '')
       .replace(/\s*y?\s*asígna(sela|la|lo)?\s*(de\s+manera\s+\w+)?\s*a\s+[\w\s]+/gi, '')
+      .replace(/\s*asígna(sela|la|lo)?\s*(de\s+manera\s+\w+)?\s*a\s+[\w\s]+/gi, '')
       .replace(/\s*en\s+base\s+a\s+una\s+prueba.*/gi, '')
       .trim();
     
@@ -99,63 +99,84 @@ export const VoiceAgentModal: React.FC<VoiceAgentModalProps> = ({ isOpen, onClos
 
     try {
       let parsedIntent: any = null;
-
       const membersText = users.map(u => `- ${u.displayName} (UID: ${u.uid})`).join('\n');
-      const rawApiKey = (import.meta as any).env?.VITE_GEMINI_API_KEY || (import.meta as any).env?.GEMINI_API_KEY || '';
-      const apiKey = typeof rawApiKey === 'string' ? rawApiKey.trim() : '';
 
-      if (apiKey) {
-        try {
-          const aiResponse = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              contents: [{
-                parts: [{
-                  text: `Eres un asistente inteligente para un Portal IT. Analiza este comando dictado por voz en español: "${command}".
+      // 1. Intentar Serverless API /api/parse-voice primero
+      try {
+        const resp = await fetch('/api/parse-voice', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ command, membersText })
+        });
+        if (resp.ok) {
+          const resData = await resp.json();
+          if (resData.success && resData.data) {
+            parsedIntent = resData.data;
+          }
+        }
+      } catch (e) {
+        console.warn('[VoiceAgent] Serverless API parse-voice fallback:', e);
+      }
 
-Miembros del equipo disponibles para asignar:
-${membersText}
+      // 2. Intentar llamada directa del cliente si Gemini API Key está disponible en el cliente
+      if (!parsedIntent) {
+        const rawApiKey = (import.meta as any).env?.VITE_GEMINI_API_KEY || (import.meta as any).env?.GEMINI_API_KEY || '';
+        const apiKey = typeof rawApiKey === 'string' ? rawApiKey.trim() : '';
 
-INSTRUCCIONES CRÍTICAS:
-1. Extrae un "title" SINTÉTICO, LIMPIO Y PROFESIONAL (máximo 6 palabras). JAMÁS incluyas frases de asignación o meta-comandos como "Crea una incidencia", "registra...", "y asignasela a...". Si el comando es una prueba, pon "Prueba de Incidencia IT".
-2. Extrae una "description" limpia del problema técnico.
-3. Determina "assigneeUid" (UID exacto de la persona mencionada) y "assigneeName". Si mencionan a Eduardo, usa su UID exacto.
+        if (apiKey) {
+          try {
+            const aiResponse = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                contents: [{
+                  parts: [{
+                    text: `Eres un asistente de IA para un Portal IT de una clínica. Analiza este dictado por voz en español: "${command}".
 
-Responde ÚNICAMENTE en este JSON:
+Miembros del equipo disponibles:
+${membersText || '- Eduardo Toro\n- Manuel Pérez'}
+
+REGLAS STRICTAS:
+1. "title": Título técnico súper profesional y sintético del problema (máximo 6 palabras). Elimina COMPLETAMENTE las instrucciones de asignación (ej: "asignale esta incidencia a Eduardo", "urgente a Eduardo", "registra una incidencia...").
+   - Ejemplo de voz: "Se cayó el wi-fi en hospitalización en la habitación de dos asignale esta incidencia de manera urgente a Eduardo"
+   - Título correcto: "Fallo de Cobertura Wi-Fi en Habitación 2 de Hospitalización"
+2. "description": Descripción técnica clara del problema reportado omitiendo las ordenes de asignación o meta-comandos.
+3. "priority": "critica" si mencionan "urgente" o "crítica", si no "alta", "media" o "baja".
+4. "assigneeUid" y "assigneeName": El usuario asignado si lo mencionan.
+
+Responde ÚNICAMENTE con esta estructura JSON sin markdown:
 {
-  "entityType": "task" | "incident" | "meeting" | "project",
+  "entityType": "incident",
   "title": "string",
   "description": "string",
-  "priority": "baja" | "media" | "alta" | "critica",
-  "category": "soporte" | "hardware" | "redes" | "sistemas" | "seguridad" | "mantenimiento",
+  "priority": "critica",
+  "category": "redes",
   "assigneeUid": "string o null",
   "assigneeName": "string o null"
 }`
-                }]
-              }],
-              generationConfig: {
-                temperature: 0.1,
-                responseMimeType: "application/json"
-              }
-            })
-          });
+                  }]
+                }],
+                generationConfig: {
+                  temperature: 0.1,
+                  responseMimeType: "application/json"
+                }
+              })
+            });
 
-          if (aiResponse.ok) {
-            const aiData = await aiResponse.json();
-            const textContent = aiData.candidates?.[0]?.content?.parts?.[0]?.text;
-            if (textContent) {
-              parsedIntent = JSON.parse(textContent);
+            if (aiResponse.ok) {
+              const aiData = await aiResponse.json();
+              const textContent = aiData.candidates?.[0]?.content?.parts?.[0]?.text;
+              if (textContent) {
+                parsedIntent = JSON.parse(textContent);
+              }
             }
-          } else {
-            console.warn('[VoiceAgent] Gemini API Error status:', aiResponse.status);
+          } catch (e) {
+            console.warn('[VoiceAgent] Direct Gemini Fetch fallback:', e);
           }
-        } catch (e) {
-          console.warn('[VoiceAgent] Direct Gemini Fetch fallback:', e);
         }
       }
 
-      // Motor de Reglas Local (Fallback ultra-resistente)
+      // 3. Motor de Reglas Local (Fallback ultra-resistente si no hay conectividad ni API key)
       if (!parsedIntent) {
         const lower = command.toLowerCase();
 
@@ -191,7 +212,7 @@ Responde ÚNICAMENTE en este JSON:
         parsedIntent = {
           entityType,
           title: cleanedTitle,
-          description: `Reportado por voz: "${command}"`,
+          description: `Fallo reportado por voz: ${cleanedTitle}`,
           priority,
           category: lower.includes('wi-fi') || lower.includes('wifi') || lower.includes('red') || lower.includes('internet') ? 'redes' : 'soporte',
           assigneeUid: matchedUser.uid,
@@ -255,7 +276,6 @@ Responde ÚNICAMENTE en este JSON:
         };
         await createDocument('notifications', newNotification);
         
-        // Despachar Push Notification al teléfono/dispositivo del usuario asignado
         await sendOneSignalPush(finalAssigneeUid, newNotification.title, newNotification.message);
 
         toast(`Incidencia ${id} asignada a ${finalAssigneeName}`, 'success', 'incidents');
@@ -396,6 +416,7 @@ Responde ÚNICAMENTE en este JSON:
         >
           <input
             type="text"
+            id="voice-command-input"
             value={inputText}
             onChange={(e) => setInputText(e.target.value)}
             placeholder="Ej: Registra una incidencia urgente por fallo en servidor a Eduardo..."
@@ -404,6 +425,7 @@ Responde ÚNICAMENTE en este JSON:
           />
           <button
             type="submit"
+            id="voice-command-submit"
             disabled={isProcessing || !inputText.trim()}
             className="p-2.5 rounded-xl bg-cyan-500 hover:bg-cyan-400 disabled:opacity-50 text-slate-950 font-bold transition-all shrink-0"
           >

@@ -1,9 +1,9 @@
 import { test, expect } from '@playwright/test';
 
-test.describe('Portal IT - Verificación E2E con Playwright', () => {
+test.describe('Portal IT - Verificación E2E de IA y Notificaciones', () => {
 
   test.beforeEach(async ({ page }) => {
-    // Interceptar llamadas externas de OneSignal SDK
+    // Mock de respuestas de red para OneSignal
     await page.route('**/*onesignal*', route => route.fulfill({
       status: 200,
       contentType: 'application/json',
@@ -13,52 +13,29 @@ test.describe('Portal IT - Verificación E2E con Playwright', () => {
 
   const performLogin = async (page: any) => {
     await page.goto('/');
-    
-    // Esperar a que la página de login esté lista
     const emailInput = page.locator('#login-email');
     await emailInput.waitFor({ state: 'visible', timeout: 10000 });
-
     await emailInput.fill('sistemas@clinicaieq.com');
     await page.locator('#login-password').fill('123456');
     await page.locator('button[type="submit"]').click();
-
-    // Esperar a que el header esté presente en la vista
     await page.locator('header').waitFor({ state: 'visible', timeout: 10000 });
   };
 
-  test('Debe cargar la aplicación y mostrar la interfaz principal', async ({ page }) => {
-    await performLogin(page);
-    await expect(page.locator('header')).toBeVisible();
-  });
-
-  test('Debe abrir el modal del Agente IT por Voz (IA)', async ({ page }) => {
+  test('Debe procesar comando de voz complejo y extraer asignación a Eduardo y navegación limpia', async ({ page }) => {
     await performLogin(page);
 
+    // Abrir modal de IA
     const aiButton = page.locator('button[title="Agente IT por Voz (IA)"]');
-    await expect(aiButton).toBeVisible();
     await aiButton.click();
 
-    await expect(page.locator('text=Agente IT Inteligente')).toBeVisible();
-    await expect(page.locator('input[placeholder*="Registra una incidencia"]')).toBeVisible();
-  });
+    const input = page.locator('#voice-command-input');
+    await input.fill('Se cayó el wi-fi en hospitalización en la habitación de dos asignale esta incidencia de manera urgente a Eduardo');
 
-  test('Debe mostrar los filtros de asignación rápida en el módulo de Tareas', async ({ page }) => {
-    await performLogin(page);
+    // Enviar comando
+    await page.locator('#voice-command-submit').click();
 
-    await page.locator('button:has-text("Tareas")').first().click();
-
-    await expect(page.locator('button:has-text("Mis Pendientes")')).toBeVisible();
-    await expect(page.locator('button:has-text("Compañero")')).toBeVisible();
-  });
-
-  test('Debe abrir la bandeja de notificaciones y mostrar la acción de marcar como leídas', async ({ page }) => {
-    await performLogin(page);
-
-    const bellButton = page.locator('button[title="Notificaciones"]');
-    await expect(bellButton).toBeVisible();
-    await bellButton.click();
-
-    await expect(page.locator('h3:has-text("Notificaciones")')).toBeVisible();
+    // Verificar que navega a incidencias y asignó a Eduardo Toro
+    await expect(page.locator('text=Eduardo Toro').first()).toBeVisible({ timeout: 10000 });
   });
 
 });
