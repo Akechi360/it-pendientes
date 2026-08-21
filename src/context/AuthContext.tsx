@@ -63,51 +63,32 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setAuthError(null);
     setLoading(true);
     try {
+      // 1. Login normal en Supabase Auth → produce un uid REAL y único
+      //    (session.user.id) vía onAuthStateChange.
       const { data, error } = await supabase.auth.signInWithPassword({ email, password });
       if (!error && data?.user) {
         return;
       }
 
-      // 1. Intentar auto-registro en Supabase Auth si el usuario no existía
+      // 2. Si el usuario no existía aún, intentar registrarlo en Supabase Auth.
       const { data: signUpData, error: signUpErr } = await supabase.auth.signUp({ email, password });
       if (!signUpErr && signUpData?.session) {
         console.log('[Auth] Usuario registrado y sesión activa en Supabase Auth:', email);
         return;
       }
 
-      // 2. Ingreso inmediato al Dashboard para usuarios del portal
-      const isSistemas = email.startsWith('sistemas') || email.includes('analista') || email.includes('eduardo');
-      const displayName = isSistemas
-        ? 'Eduardo Toro'
-        : (email.includes('gerente') || email.includes('admin') || email.startsWith('gerencia') ? 'Gerente de Sistemas' : (email.split('@')[0] || 'Usuario IT'));
-
-      const profile: UserProfile = {
-        uid: isSistemas ? 'e7b28a90-1111-4444-9999-000000000001' : 'a1b2c3d4-0000-4000-8000-000000000000',
-        email,
-        displayName,
-        role: isSistemas ? 'analyst' : 'admin',
-        title: isSistemas ? 'Analista IT' : 'Gerencia IT',
-        organizationId: 'org_sistemas_main'
-      };
-
-      setCurrentUser(profile);
-      try {
-        const { upsertUserProfile } = await import('../services/supabaseService');
-        await upsertUserProfile(profile);
-      } catch (e) {
-        console.warn('[Auth] Upsert profile non-blocking warning:', e);
-      }
-      return;
+      // 3. Sin sesión real de Supabase => NO iniciamos con identidad falsa.
+      //    (Se eliminó el fallback con uid hardcodeado del seed de desarrollo:
+      //     compartía identidad entre usuarios y rompía el targeting de push.)
+      setCurrentUser(null);
+      setAuthError(
+        error?.message ||
+        signUpErr?.message ||
+        'No se pudo iniciar sesión. Verifica tu correo y contraseña.'
+      );
     } catch (err: any) {
-      const isSistemas = email.startsWith('sistemas') || email.includes('analista') || email.includes('eduardo');
-      setCurrentUser({
-        uid: isSistemas ? 'e7b28a90-1111-4444-9999-000000000001' : 'a1b2c3d4-0000-4000-8000-000000000000',
-        email,
-        displayName: isSistemas ? 'Eduardo Toro' : 'Gerente de Sistemas',
-        role: isSistemas ? 'analyst' : 'admin',
-        title: isSistemas ? 'Analista IT' : 'Gerencia IT',
-        organizationId: 'org_sistemas_main'
-      });
+      setCurrentUser(null);
+      setAuthError(err?.message || 'Error de conexión al iniciar sesión. Intenta de nuevo.');
     } finally {
       setLoading(false);
     }
