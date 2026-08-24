@@ -11,30 +11,32 @@
 // rápido; ambos son 2.5 y aceptan thinkingConfig.
 export const GEMINI_MODELS = ['gemini-flash-latest', 'gemini-flash-lite-latest'];
 
-const buildPrompt = (command, membersText) => `Eres un asistente de IA para un Portal IT de una clínica. Analiza este dictado por voz en español: "${command}".
+const buildPrompt = (command, membersText, currentTime) => `Eres un asistente de IA para un Portal IT de una clínica. Analiza este dictado por voz en español: "${command}".
+
+Hoy es: ${currentTime || new Date().toISOString()}
 
 Miembros del equipo disponibles:
 ${membersText || '- Eduardo Toro\n- Manuel Pérez'}
 
 REGLAS ESTRUCTURALES CRÍTICAS:
-1. "title": Título técnico súper profesional y sintético del problema (máximo 7 palabras). Elimina COMPLETAMENTE las instrucciones de asignación (ej: "asigna esta incidencia como urgente a Eduardo", "urgente a Eduardo", "registra una incidencia...").
-   - Ejemplo de voz: "Se cayó el wi-fi en la habitación 2 de hospitalización asigna esta incidencia como urgente a Eduardo"
-   - Título correcto: "Fallo de Cobertura Wi-Fi en Habitación 2 de Hospitalización"
-2. "description": Descripción técnica clara del problema reportado omitiendo las órdenes de asignación o meta-comandos.
-3. "priority": "critica" si mencionan "urgente" o "crítica"; si no "alta", "media" o "baja".
-4. "assigneeUid" y "assigneeName": El usuario asignado si lo mencionan (resuelve el UID a partir de la lista de miembros).
-5. "entityType": "incident", "task", "meeting" o "project" según corresponda.
+1. "title": Título técnico súper profesional y sintético (máximo 7 palabras). Elimina comandos verbales (ej. "recuérdame que...").
+2. "description": Descripción clara de la tarea o recordatorio.
+3. "priority": "critica", "alta", "media" o "baja".
+4. "assigneeUid" y "assigneeName": El usuario asignado si lo mencionan (resuelve el UID). Si es un recordatorio personal y no mencionan a nadie, omítelo o asígnalo a quien habla.
+5. "entityType": "incident", "task", "meeting", "project" o "reminder". Usa "reminder" si dicen "recuérdame", "añade un recordatorio", etc.
 6. "category": "redes", "hardware", "software", "soporte", etc.
+7. "scheduledAt": SOLO si es un recordatorio ("reminder") o tiene una fecha/hora específica. Convierte la fecha y hora mencionada (ej: "mañana a las 3pm", "en 10 minutos") a formato ISO 8601 UTC. Usa la fecha "Hoy es:" como referencia exacta. Si no hay hora exacta, déjalo como null.
 
 Responde ÚNICAMENTE con esta estructura JSON sin markdown:
 {
-  "entityType": "incident",
+  "entityType": "reminder",
   "title": "string",
   "description": "string",
-  "priority": "critica",
-  "category": "redes",
+  "priority": "media",
+  "category": "soporte",
   "assigneeUid": "string o null",
-  "assigneeName": "string o null"
+  "assigneeName": "string o null",
+  "scheduledAt": "2026-08-25T15:00:00.000Z o null"
 }`;
 
 // Extrae el primer objeto JSON válido del texto devuelto por el modelo,
@@ -55,7 +57,7 @@ const extractJson = (text) => {
  * Llama a Gemini y devuelve el intent estructurado.
  * @throws {Error} con `.status` y mensaje real de Gemini si la API falla.
  */
-export async function parseVoiceWithGemini({ command, membersText, apiKey }) {
+export async function parseVoiceWithGemini({ command, membersText, currentTime, apiKey }) {
   if (!apiKey) {
     const err = new Error('Falta GEMINI_API_KEY en el entorno del servidor');
     err.status = 500;
@@ -71,7 +73,7 @@ export async function parseVoiceWithGemini({ command, membersText, apiKey }) {
   // sin esto tardan 30-60s). Pero algunos modelos —p. ej. flash-lite— NO
   // aceptan thinkingConfig y responden 400; para esos reintentamos sin él.
   const buildBody = (useThinking) => JSON.stringify({
-    contents: [{ parts: [{ text: buildPrompt(command, membersText) }] }],
+    contents: [{ parts: [{ text: buildPrompt(command, membersText, currentTime) }] }],
     generationConfig: {
       temperature: 0.1,
       responseMimeType: 'application/json',

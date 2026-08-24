@@ -3,7 +3,7 @@ export default async function handler(req, res) {
     return res.status(405).json({ error: 'Method Not Allowed' });
   }
 
-  const { targetUserId, title, message } = req.body;
+  const { targetUserId, title, message, sendAfter } = req.body;
 
   if (!targetUserId || !title || !message) {
     return res.status(400).json({ error: 'Missing required fields' });
@@ -17,6 +17,20 @@ export default async function handler(req, res) {
     return res.status(500).json({ error: 'Missing OneSignal REST API Key' });
   }
 
+  const buildPayload = (filtersOrInclude) => {
+    const payload = {
+      app_id: appId,
+      target_channel: 'push',
+      headings: { en: title, es: title },
+      contents: { en: message, es: message },
+      ...filtersOrInclude
+    };
+    if (sendAfter) {
+      payload.send_after = sendAfter;
+    }
+    return payload;
+  };
+
   try {
     // 1. Intentar envío por external_id con canal Push explícito (OneSignal API v9 & v11)
     const response = await fetch('https://api.onesignal.com/notifications', {
@@ -26,14 +40,10 @@ export default async function handler(req, res) {
         'Authorization': 'Key ' + restApiKey,
         'Accept': 'application/json'
       },
-      body: JSON.stringify({
-        app_id: appId,
+      body: JSON.stringify(buildPayload({
         include_external_user_ids: [targetUserId],
-        channel_for_external_user_ids: 'push',
-        target_channel: 'push',
-        headings: { en: title, es: title },
-        contents: { en: message, es: message }
-      })
+        channel_for_external_user_ids: 'push'
+      }))
     });
 
     const responseData = await response.text();
@@ -52,12 +62,9 @@ export default async function handler(req, res) {
           'Authorization': 'Key ' + restApiKey,
           'Accept': 'application/json'
         },
-        body: JSON.stringify({
-          app_id: appId,
-          filters: [{ field: 'tag', key: 'uid', relation: '=', value: targetUserId }],
-          headings: { en: title, es: title },
-          contents: { en: message, es: message }
-        })
+        body: JSON.stringify(buildPayload({
+          filters: [{ field: 'tag', key: 'uid', relation: '=', value: targetUserId }]
+        }))
       });
       const fallbackData = await fallbackResp.text();
       return res.status(fallbackResp.status).json({ success: fallbackResp.ok, data: fallbackData });

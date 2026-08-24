@@ -7,7 +7,7 @@ export default async function handler(req, res) {
     return res.status(405).json({ error: 'Method Not Allowed' });
   }
 
-  const { command, membersText } = req.body || {};
+  const { command, membersText, currentTime } = req.body || {};
 
   if (!command) {
     return res.status(400).json({ error: 'Missing command' });
@@ -18,7 +18,7 @@ export default async function handler(req, res) {
   const apiKey = process.env.GEMINI_API_KEY || process.env.VITE_GEMINI_API_KEY;
 
   try {
-    const data = await parseVoiceWithGemini({ command, membersText, apiKey });
+    const data = await parseVoiceWithGemini({ command, membersText, currentTime, apiKey });
     return res.status(200).json({ success: true, data });
   } catch (error) {
     const status = error.status || 500;

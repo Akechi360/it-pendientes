@@ -224,7 +224,7 @@ export async function upsertUserProfile(profile: UserProfile): Promise<void> {
 // ─────────────────────────────────────────────────────────────
 // OneSignal Push Notification Sender
 // ─────────────────────────────────────────────────────────────
-export async function sendOneSignalPush(targetUserId: string, title: string, message: string): Promise<void> {
+export async function sendOneSignalPush(targetUserId: string, title: string, message: string, sendAfter?: string): Promise<void> {
   try {
     const response = await fetch('/api/send-push', {
       method: 'POST',
@@ -234,7 +234,8 @@ export async function sendOneSignalPush(targetUserId: string, title: string, mes
       body: JSON.stringify({
         targetUserId,
         title,
-        message
+        message,
+        sendAfter
       })
     });
     

@@ -117,7 +117,11 @@ export const VoiceAgentModal: React.FC<VoiceAgentModalProps> = ({ isOpen, onClos
           resp = await fetch('/api/parse-voice', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ command, membersText }),
+            body: JSON.stringify({ 
+              command, 
+              membersText, 
+              currentTime: new Date().toLocaleString('es-ES') 
+            }),
             signal: controller.signal,
           });
         } finally {
@@ -274,16 +278,16 @@ export const VoiceAgentModal: React.FC<VoiceAgentModalProps> = ({ isOpen, onClos
         const id = `TASK-${year}-${randStr}`;
         const newTask = {
           id,
-          title: parsedIntent.title || 'Tarea Creada por IA',
+          title: parsedIntent.title || (parsedIntent.entityType === 'reminder' ? 'Recordatorio IA' : 'Tarea Creada por IA'),
           description: parsedIntent.description || command,
           status: 'pendiente',
           priority: parsedIntent.priority || 'media',
-          category: parsedIntent.category || 'soporte',
+          category: parsedIntent.entityType === 'reminder' ? 'recordatorio' : (parsedIntent.category || 'soporte'),
           assigneeId: finalAssigneeUid,
           assigneeName: finalAssigneeName,
           creatorId: currentUser.uid,
           creatorName: currentUser.displayName,
-          dueDate: new Date().toISOString().split('T')[0],
+          dueDate: parsedIntent.scheduledAt ? parsedIntent.scheduledAt.split('T')[0] : new Date().toISOString().split('T')[0],
           organizationId: currentUser.organizationId,
           createdAt: new Date().toISOString(),
           updatedAt: new Date().toISOString()
@@ -291,11 +295,12 @@ export const VoiceAgentModal: React.FC<VoiceAgentModalProps> = ({ isOpen, onClos
         await createDocument('tasks', newTask);
         await logActivity(currentUser.uid, currentUser.displayName, currentUser.role, 'Tarea por Voz (IA)', 'Tareas', id, newTask.title, `Tarea asignada a ${finalAssigneeName}.`);
 
+        const isReminder = parsedIntent.entityType === 'reminder';
         const newNotification = {
           id: `NOTIF-${Date.now()}`,
           userId: finalAssigneeUid,
-          title: 'Nueva Tarea Asignada (IA)',
-          message: `Se te ha asignado la tarea: ${newTask.title}`,
+          title: isReminder ? 'Nuevo Recordatorio (IA)' : 'Nueva Tarea Asignada (IA)',
+          message: isReminder ? `Recordatorio programado: ${newTask.title}` : `Se te ha asignado la tarea: ${newTask.title}`,
           linkModule: 'tasks',
           linkEntityId: id,
           isRead: false,
@@ -303,9 +308,10 @@ export const VoiceAgentModal: React.FC<VoiceAgentModalProps> = ({ isOpen, onClos
           createdAt: new Date().toISOString()
         };
         await createDocument('notifications', newNotification);
-        await sendOneSignalPush(finalAssigneeUid, newNotification.title, newNotification.message);
-
-        toast(`Tarea ${id} creada por Agente de Voz`, 'success', 'tasks');
+        
+        await sendOneSignalPush(finalAssigneeUid, newNotification.title, newNotification.message, parsedIntent.scheduledAt);
+  
+        toast(isReminder ? `Recordatorio ${id} programado` : `Tarea ${id} creada por Agente de Voz`, 'success', 'tasks');
         setActiveTab('tasks');
       }
 
