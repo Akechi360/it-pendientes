@@ -86,6 +86,10 @@ const AppGate: React.FC = () => {
         const user = currentUserRef.current;
         if (!user) return;
         try {
+          // Evitar Error 409: Solo hacer logout si el ID guardado en OneSignal no coincide con el usuario actual
+          if (OneSignal.User.externalId && OneSignal.User.externalId !== user.uid) {
+            await OneSignal.logout();
+          }
           await OneSignal.login(user.uid);
           OneSignal.User.addTag('uid', user.uid);
         } catch (err) {
