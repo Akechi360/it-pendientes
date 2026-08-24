@@ -26,7 +26,15 @@ export default async function handler(req, res) {
       ...filtersOrInclude
     };
     if (sendAfter) {
-      payload.send_after = sendAfter;
+      // OneSignal es súper estricto: requiere "YYYY-MM-DD HH:MM:SS GMT"
+      // Si la IA manda un ISO 8601, lo formateamos exacto.
+      const date = new Date(sendAfter);
+      if (!isNaN(date.getTime())) {
+        const pad = (n) => n.toString().padStart(2, '0');
+        payload.send_after = `${date.getUTCFullYear()}-${pad(date.getUTCMonth()+1)}-${pad(date.getUTCDate())} ${pad(date.getUTCHours())}:${pad(date.getUTCMinutes())}:${pad(date.getUTCSeconds())} GMT`;
+      } else {
+        payload.send_after = sendAfter;
+      }
     }
     return payload;
   };
