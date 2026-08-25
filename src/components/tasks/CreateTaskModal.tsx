@@ -105,12 +105,12 @@ export const CreateTaskModal: React.FC = () => {
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/70 backdrop-blur-sm animate-in fade-in duration-200">
-      <div className="w-full max-w-lg rounded-2xl shadow-2xl border p-6 bg-surface border-border-subtle overflow-hidden transition-all text-content-primary">
+      <div className="w-full max-w-lg rounded-2xl shadow-2xl border p-6 bg-surface border-border-subtle overflow-hidden transition-all text-content-primary relative">
         <div className="flex items-center justify-between mb-5 pb-3 border-b border-border-subtle">
-          <h2 className="text-lg font-bold flex items-center gap-2">
+          <h2 className="text-lg font-bold flex items-center gap-2 flex-1 min-w-0 pr-2">
             <CheckSquare className="w-5 h-5 text-cyan-400" /> Nueva Tarea
           </h2>
-          <button onClick={handleClose} className="shrink-0 p-1.5 rounded-lg text-content-muted hover:text-content-primary hover:bg-surface-hover transition-colors">
+          <button onClick={handleClose} className="absolute top-4 right-4 shrink-0 p-2 rounded-full bg-surface-raised border border-border-subtle text-content-muted hover:text-content-primary hover:bg-surface-hover shadow-sm z-50">
             <X className="w-5 h-5" />
           </button>
         </div>

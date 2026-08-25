@@ -327,7 +327,7 @@ export const VoiceAgentModal: React.FC<VoiceAgentModalProps> = ({ isOpen, onClos
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-md animate-in fade-in duration-200">
-      <div className="w-full max-w-lg rounded-2xl shadow-2xl border p-6 bg-surface border-border-subtle overflow-hidden transition-all text-content-primary">
+      <div className="w-full max-w-lg rounded-2xl shadow-2xl border p-6 bg-surface border-border-subtle overflow-hidden transition-all text-content-primary relative">
         
         {/* Header */}
         <div className="flex items-center justify-between pb-4 border-b border-border-subtle">
@@ -336,11 +336,10 @@ export const VoiceAgentModal: React.FC<VoiceAgentModalProps> = ({ isOpen, onClos
               <Sparkles className="w-5 h-5 animate-pulse" />
             </div>
             <div>
-              <h2 className="text-base font-bold flex items-center gap-2">Agente IT Inteligente</h2>
+              <h2 className="text-base font-bold flex items-center gap-2 flex-1 min-w-0 pr-2">Agente IT Inteligente</h2>
               <p className="text-xs text-content-muted">Dicta o escribe comandos de voz en español</p>
             </div>
-          </div>
-          <button onClick={onClose} className="shrink-0 p-1.5 rounded-lg text-content-muted hover:text-content-primary hover:bg-surface-hover">
+          <button onClick={onClose} className="absolute top-4 right-4 shrink-0 p-2 rounded-full bg-surface-raised border border-border-subtle text-content-muted hover:text-content-primary hover:bg-surface-hover shadow-sm z-50">
             <X className="w-5 h-5" />
           </button>
         </div>

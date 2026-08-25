@@ -49,7 +49,7 @@ export const CommandPalette: React.FC = () => {
   return (
     <div className="fixed inset-0 z-50 flex items-start justify-center pt-20 px-4 bg-slate-950/70 backdrop-blur-sm animate-in fade-in duration-200">
       <div
-        className="w-full max-w-2xl rounded-xl shadow-2xl border bg-surface border-border-subtle overflow-hidden transition-all text-content-primary"
+        className="w-full max-w-2xl rounded-xl shadow-2xl border bg-surface border-border-subtle overflow-hidden transition-all text-content-primary relative"
       >
         {/* Search Input Box */}
         <div className="flex items-center px-4 py-3.5 border-b border-border-subtle gap-3">
