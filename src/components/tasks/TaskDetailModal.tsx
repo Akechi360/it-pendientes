@@ -254,7 +254,7 @@ export const TaskDetailModal: React.FC = () => {
         }`}
       >
         {/* Header Bar */}
-        <div className="flex items-center justify-between px-6 py-4 border-b border-slate-800 bg-slate-950/40">
+        <div className="flex items-center justify-between pl-6 pr-16 py-4 border-b border-slate-800 bg-slate-950/40">
           <div className="flex items-center gap-3">
             <span className="font-mono text-sm font-extrabold text-cyan-400 bg-cyan-500/10 px-2.5 py-1 rounded-lg border border-cyan-500/20">
               {selectedTask.id}
@@ -303,7 +303,7 @@ export const TaskDetailModal: React.FC = () => {
             >
               <LifeBuoy className="w-4 h-4" />
             </button>
-            <button onClick={handleClose} className="shrink-0 p-2 rounded-lg text-slate-400 hover:text-white">
+            <button onClick={handleClose} className="absolute top-4 right-4 shrink-0 p-2 rounded-full bg-slate-900 border border-slate-700 text-slate-400 hover:text-white hover:bg-slate-800 shadow-md z-50">
               <X className="w-5 h-5" />
             </button>
           </div>
