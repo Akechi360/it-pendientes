@@ -339,6 +339,7 @@ export const VoiceAgentModal: React.FC<VoiceAgentModalProps> = ({ isOpen, onClos
               <h2 className="text-base font-bold flex items-center gap-2 flex-1 min-w-0 pr-2">Agente IT Inteligente</h2>
               <p className="text-xs text-content-muted">Dicta o escribe comandos de voz en español</p>
             </div>
+          </div>
           <button onClick={onClose} className="absolute top-4 right-4 shrink-0 p-2 rounded-full bg-surface-raised border border-border-subtle text-content-muted hover:text-content-primary hover:bg-surface-hover shadow-sm z-50">
             <X className="w-5 h-5" />
           </button>
