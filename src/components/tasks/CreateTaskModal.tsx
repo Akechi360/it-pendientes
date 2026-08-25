@@ -110,7 +110,7 @@ export const CreateTaskModal: React.FC = () => {
           <h2 className="text-lg font-bold flex items-center gap-2">
             <CheckSquare className="w-5 h-5 text-cyan-400" /> Nueva Tarea
           </h2>
-          <button onClick={handleClose} className="p-1.5 rounded-lg text-content-muted hover:text-content-primary hover:bg-surface-hover transition-colors">
+          <button onClick={handleClose} className="shrink-0 p-1.5 rounded-lg text-content-muted hover:text-content-primary hover:bg-surface-hover transition-colors">
             <X className="w-5 h-5" />
           </button>
         </div>

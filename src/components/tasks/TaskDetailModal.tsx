@@ -303,7 +303,7 @@ export const TaskDetailModal: React.FC = () => {
             >
               <LifeBuoy className="w-4 h-4" />
             </button>
-            <button onClick={handleClose} className="p-2 rounded-lg text-slate-400 hover:text-white">
+            <button onClick={handleClose} className="shrink-0 p-2 rounded-lg text-slate-400 hover:text-white">
               <X className="w-5 h-5" />
             </button>
           </div>

@@ -62,7 +62,7 @@ export const CommandPalette: React.FC = () => {
             className="w-full bg-transparent border-none outline-none text-base text-content-primary placeholder-content-muted"
             autoFocus
           />
-          <button onClick={handleClose} className="p-1.5 rounded-lg text-content-muted hover:text-content-primary hover:bg-surface-hover transition-colors">
+          <button onClick={handleClose} className="shrink-0 p-1.5 rounded-lg text-content-muted hover:text-content-primary hover:bg-surface-hover transition-colors">
             <X className="w-5 h-5" />
           </button>
         </div>

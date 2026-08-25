@@ -75,7 +75,7 @@ export const ProjectDetailModal: React.FC = () => {
                 <Trash2 className="w-5 h-5" />
               </button>
             )}
-            <button onClick={handleClose} className="p-2 rounded-lg text-slate-400 hover:text-white transition-all">
+            <button onClick={handleClose} className="shrink-0 p-2 rounded-lg text-slate-400 hover:text-white transition-all">
               <X className="w-5 h-5" />
             </button>
           </div>

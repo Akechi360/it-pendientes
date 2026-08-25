@@ -184,14 +184,14 @@ export const EntityAttachments: React.FC<EntityAttachmentsProps> = ({ moduleId, 
                   download={previewFile.name}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="p-2 text-content-secondary hover:text-cyan-400 hover:bg-cyan-500/10 rounded-lg transition-colors"
+                  className="shrink-0 p-2 text-content-secondary hover:text-cyan-400 hover:bg-cyan-500/10 rounded-lg transition-colors"
                   title="Descargar"
                 >
                   <Download className="w-5 h-5" />
                 </a>
                 <button
                   onClick={() => setPreviewFile(null)}
-                  className="p-2 text-content-secondary hover:text-rose-400 hover:bg-rose-500/10 rounded-lg transition-colors"
+                  className="shrink-0 p-2 text-content-secondary hover:text-rose-400 hover:bg-rose-500/10 rounded-lg transition-colors"
                 >
                   <X className="w-5 h-5" />
                 </button>

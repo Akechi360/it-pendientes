@@ -175,7 +175,7 @@ export const IncidentDetailModal: React.FC = () => {
             >
               <CheckSquare className="w-3.5 h-3.5" /> Convertir a Tarea
             </button>
-            <button onClick={handleClose} className="p-2 rounded-lg text-slate-400 hover:text-white">
+            <button onClick={handleClose} className="shrink-0 p-2 rounded-lg text-slate-400 hover:text-white">
               <X className="w-5 h-5" />
             </button>
           </div>
