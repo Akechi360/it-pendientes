@@ -12,6 +12,7 @@ import { createDocument, updateDocument, deleteDocument, logActivity } from '../
 import { DocumentItem, DocumentSpace } from '../../types';
 import { EntityPageHeader } from '../shared/EntityPageHeader';
 import { formatDate } from '../../utils/dateUtils';
+import { EntityAttachments } from '../files/EntityAttachments';
 
 export const DocumentsView: React.FC = () => {
   const { documents, toast } = useApp();
@@ -261,8 +262,16 @@ export const DocumentsView: React.FC = () => {
                     className="absolute inset-0 w-full h-full p-4 rounded-lg bg-canvas border border-border-subtle text-xs font-mono text-content-primary leading-relaxed focus:outline-none focus:border-cyan-500/50 resize-none custom-scrollbar"
                   />
                 ) : (
-                  <div className="absolute inset-0 w-full h-full p-6 rounded-lg bg-canvas border border-border-subtle text-sm font-mono leading-relaxed text-content-secondary whitespace-pre-line overflow-y-auto custom-scrollbar">
-                    {selectedDoc.content}
+                  <div className="absolute inset-0 w-full h-full p-6 rounded-lg bg-canvas border border-border-subtle overflow-y-auto custom-scrollbar">
+                    <div className="text-sm font-mono leading-relaxed text-content-secondary whitespace-pre-line mb-8">
+                      {selectedDoc.content}
+                    </div>
+                    
+                    <EntityAttachments 
+                      moduleId="documents" 
+                      entityId={selectedDoc.id} 
+                      entityTitle={selectedDoc.title} 
+                    />
                   </div>
                 )}
               </div>
